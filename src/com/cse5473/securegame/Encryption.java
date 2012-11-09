@@ -130,7 +130,7 @@ public final class Encryption {
 	}
 
 	/**
-	 * Pretty Print for byte arrays.
+	 * Pretty Print for byte arrays.  
 	 * @param buf
 	 * @return
 	 */
