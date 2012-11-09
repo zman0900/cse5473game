@@ -5,6 +5,10 @@
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="lib" path="libs/sip.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/sip2peer-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/sip2peer-1.0.jar" sourcepath="/Users/dan/src/sip2peer/Sip2Peer/src">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/Users/dan/src/sip2peer/Sip2Peer/doc/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

@@ -76,4 +76,10 @@ public class SettingsActivity extends PreferenceActivity implements
 				.getDefaultSharedPreferences(context);
 		return !sharedPref.getString(KEY_PREF_USERNAME, "").equals("");
 	}
+	
+	public static String getUsername(Context context) {
+		SharedPreferences sharedPref = PreferenceManager
+				.getDefaultSharedPreferences(context);
+		return sharedPref.getString(KEY_PREF_USERNAME, "");
+	}
 }
