@@ -12,6 +12,11 @@ public class MainActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		// Set a random username if none set
+		if (!SettingsActivity.isUsernameSet(this)) {
+			SettingsActivity.createRandomUsername(this);
+		}
 	}
 
 	@Override
