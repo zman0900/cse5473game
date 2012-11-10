@@ -8,11 +8,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -46,10 +49,18 @@ public class MainActivity extends Activity {
 		}
 
 		setupPeer();
-		
-		
+
+		listView.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				Log.d(LOG_TAG, "clicked "
+						+ ((TextView) view).getText().toString());
+				peer.pingPeer(((TextView) view).getText().toString());
+			}
+		});
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -71,6 +82,7 @@ public class MainActivity extends Activity {
 			return true;
 		case R.id.menu_refresh:
 			if (peer != null) {
+				message.setVisibility(View.VISIBLE);
 				peer.doBootstrap();
 			}
 			return true;
@@ -100,12 +112,17 @@ public class MainActivity extends Activity {
 				Log.e(LOG_TAG, "init failed!");
 				main.message.setVisibility(View.INVISIBLE);
 				break;
-			case PeerManager.PEER_LIST_UPDATED:
+			case PeerManager.RECEIVED_PING:
+				main.message.setVisibility(View.INVISIBLE);
 				main.adapter = new ArrayAdapter<String>(main,
 						android.R.layout.simple_list_item_1,
 						main.peer.getPeerList());
 				main.listView.setAdapter(main.adapter);
 				Log.i(LOG_TAG, "peer list updated");
+				main.displayAlert(R.string.rec_ping);
+				break;
+			case PeerManager.RECEIVED_ACK:
+				main.displayAlert(R.string.rec_ack);
 				break;
 			}
 		}
@@ -121,6 +138,13 @@ public class MainActivity extends Activity {
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void displayAlert(int resId) {
+		AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+		alertDialog.setTitle(R.string.alert);
+		alertDialog.setMessage(getString(resId));
+		alertDialog.show();
 	}
 
 }

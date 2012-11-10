@@ -8,5 +8,8 @@
     <string name="username">User name</string>
     <string name="emptyusername">A random username has been chosen</string>
     <string name="menu_refresh">Refresh</string>
+    <string name="alert">Alert</string>
+    <string name="rec_ping">Received ping!</string>
+    <string name="rec_ack">Received ack!</string>
 
 </resources>

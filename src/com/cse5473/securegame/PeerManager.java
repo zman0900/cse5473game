@@ -3,6 +3,7 @@ package com.cse5473.securegame;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.cse5473.securegame.msg.AckMessage;
 import com.cse5473.securegame.msg.JoinMessage;
 import com.cse5473.securegame.msg.PeerListMessage;
 import com.cse5473.securegame.msg.PingMessage;
@@ -31,7 +32,8 @@ public class PeerManager extends Peer {
 
 	public static final int RECEIVED_PEER_LIST = 1;
 	public static final int INIT_FAILED = 2;
-	public static final int PEER_LIST_UPDATED = 4;
+	public static final int RECEIVED_PING = 4;
+	public static final int RECEIVED_ACK = 8;
 	private Handler handler;
 	private Context context;
 
@@ -102,6 +104,7 @@ public class PeerManager extends Peer {
 			handler.sendMessage(m);
 		} else if (arg0.equals("HELLO")) {
 			// failed setting up sbc, try again
+			Log.e(LOG_TAG, "sbc failed, retrying");
 			closePublicAddress();
 			requestPublicAddress();
 		}
@@ -114,6 +117,7 @@ public class PeerManager extends Peer {
 				+ arg1 + " arg2:" + arg2);
 		if (arg0.equals("HELLO")) {
 			// successfully set up sbc port, do bootstrap
+			Log.d(LOG_TAG, "sbc success, doing bootstrap");
 			doBootstrap();
 		}
 	}
@@ -162,7 +166,19 @@ public class PeerManager extends Peer {
 				addNeighborPeer(neighborPeerDesc);
 				// Notify of new peer
 				Message m = new Message();
-				m.what = PEER_LIST_UPDATED;
+				m.what = RECEIVED_PING;
+				m.obj = params.get("contactAddress").toString();
+				handler.sendMessage(m);
+				// Send ack to peer
+				ackPeer(params.get("contactAddress").toString());
+			} else if (jsonMsg.get("type").equals(AckMessage.MSG_PEER_ACK)) {
+				Log.i(LOG_TAG,
+						"received ack message from "
+								+ params.get("contactAddress"));
+				// Notify of ack
+				Message m = new Message();
+				m.what = RECEIVED_ACK;
+				m.obj = params.get("contactAddress").toString();
 				handler.sendMessage(m);
 			}
 		} catch (JSONException e) {
@@ -185,6 +201,16 @@ public class PeerManager extends Peer {
 	public void doBootstrap() {
 		JoinMessage msg = new JoinMessage(peerDescriptor);
 		send(new Address(BOOTSTRAP), msg);
+	}
+
+	public void pingPeer(String address) {
+		PingMessage ping = new PingMessage(peerDescriptor);
+		send(new Address(address), ping);
+	}
+
+	private void ackPeer(String address) {
+		AckMessage ack = new AckMessage(peerDescriptor);
+		send(new Address(address), ack);
 	}
 
 }
