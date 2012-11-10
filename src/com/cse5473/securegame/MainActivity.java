@@ -3,9 +3,6 @@ package com.cse5473.securegame;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.zoolu.tools.MD5;
-
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.app.Activity;
@@ -25,10 +22,9 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		// StrictMode.ThreadPolicy policy = new
-		// StrictMode.ThreadPolicy.Builder()
-		// .permitAll().build();
-		// StrictMode.setThreadPolicy(policy);
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+				.permitAll().build();
+		StrictMode.setThreadPolicy(policy);
 
 		// Set a random username if none set
 		if (!SettingsActivity.isUsernameSet(this)) {
@@ -56,21 +52,13 @@ public class MainActivity extends Activity {
 
 	private void setupPeer() {
 		username = SettingsActivity.getUsername(this);
-		new SetupPeerTask().execute();
-	}
-
-	private class SetupPeerTask extends AsyncTask<Void, Void, Void> {
-		@Override
-		protected Void doInBackground(Void... params) {
-			MessageDigest md;
-			try {
-				md = MessageDigest.getInstance("MD5");
-				peer = new PeerManager(new String(
-						md.digest(username.getBytes())), username, DEFAULT_PORT);
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-			}
-			return null;
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("MD5");
+			peer = new PeerManager(new String(md.digest(username.getBytes())),
+					username, DEFAULT_PORT);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
 		}
 	}
 
