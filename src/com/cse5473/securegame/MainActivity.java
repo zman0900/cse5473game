@@ -3,10 +3,13 @@ package com.cse5473.securegame;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import com.cse5473.securegame.PeerManager.PeerListReadyCallback;
+
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -56,7 +59,11 @@ public class MainActivity extends Activity {
 		try {
 			md = MessageDigest.getInstance("MD5");
 			peer = new PeerManager(new String(md.digest(username.getBytes())),
-					username, DEFAULT_PORT);
+					username, DEFAULT_PORT, new PeerListReadyCallback() {
+						public void peerListReady() {
+							Log.d("main", "peer list ready");
+						}
+					});
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
