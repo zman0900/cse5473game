@@ -2,7 +2,9 @@ package com.cse5473.securegame;
 
 import java.util.Random;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -10,6 +12,7 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 
 @SuppressWarnings("deprecation")
@@ -71,12 +74,43 @@ public class SettingsActivity extends PreferenceActivity implements
 				.show();
 	}
 
+	public static void promptForUsernameThenSetupPeer(MainActivity main) {
+		AlertDialog.Builder alert = new AlertDialog.Builder(main);
+		alert.setTitle(R.string.username);
+		alert.setMessage(R.string.username_prompt);
+		final EditText input = new EditText(main);
+		alert.setView(input);
+		alert.setCancelable(false);
+		final MainActivity m = main;
+		alert.setPositiveButton(android.R.string.ok,
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						String username = input.getText().toString();
+						if (username.equals("")) {
+							createRandomUsername(m);
+						} else {
+							SharedPreferences sharedPref = PreferenceManager
+									.getDefaultSharedPreferences(m);
+							SharedPreferences.Editor e = sharedPref.edit();
+							e.putString(KEY_PREF_USERNAME, input.getText()
+									.toString());
+							e.commit();
+							Toast.makeText(m, R.string.username_set,
+									Toast.LENGTH_LONG).show();
+						}
+						m.userNameSet();
+					}
+				});
+		alert.show();
+	}
+
 	public static boolean isUsernameSet(Context context) {
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(context);
 		return !sharedPref.getString(KEY_PREF_USERNAME, "").equals("");
 	}
-	
+
 	public static String getUsername(Context context) {
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(context);

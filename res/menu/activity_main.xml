@@ -11,5 +11,6 @@
         android:showAsAction="always"
         android:title="@string/menu_refresh">
     </item>
+    <item android:id="@+id/menu_disconnect" android:showAsAction="ifRoom" android:orderInCategory="2" android:title="@string/disconnect"></item>
 
 </menu>
