@@ -3,6 +3,8 @@ package com.cse5473.securegame;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import com.cse5473.securegame.GameView.State;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -122,7 +124,11 @@ public class MainActivity extends Activity {
 				main.displayAlert(R.string.rec_ping);
 				break;
 			case PeerManager.RECEIVED_ACK:
-				main.displayAlert(R.string.rec_ack);
+				//main.displayAlert(R.string.rec_ack);
+				Intent i = new Intent(main, GameActivity.class);
+		        i.putExtra(GameActivity.EXTRA_START_PLAYER,
+		                State.PLAYER1.getValue());
+		        main.startActivity(i);
 				break;
 			}
 		}

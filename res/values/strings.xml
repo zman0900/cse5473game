@@ -11,5 +11,11 @@
     <string name="alert">Alert</string>
     <string name="rec_ping">Received ping!</string>
     <string name="rec_ack">Received ack!</string>
+    
+    <string name="player2_turn">Player 2\'s turn (that\'s the computer)</string>
+    <string name="player1_turn">Player 1\'s turn -- that\'s you!</string>
+    <string name="tie">This is a tie! No one wins!</string>
+    <string name="player2_win">Player 2 (computer) wins!</string>
+    <string name="player1_win">Player 1 (you) wins!</string>
 
 </resources>
