@@ -76,11 +76,10 @@ public final class VerificationMessage extends BasicMessage {
 	 * correctly (detected by the HMAC) if the key is not valid, this will
 	 * return false.
 	 * 
-	 * @param key
-	 *            The key to test.
+	 * @param key The key to test.
 	 * @return True iff the key is correct for the stored encryption.
 	 */
-	public final boolean isValidKey(String key) {
+	public static final boolean isValidKey(byte[] message, String key) {
 		byte[] byteKey = null;
 		try {
 			byteKey = Encryption.GenerateAES128Key(key);
@@ -88,8 +87,6 @@ public final class VerificationMessage extends BasicMessage {
 			e.printStackTrace();
 			return false;
 		}
-		byte[] message = (byte[]) this.getPayload().getParams()
-				.get(VerificationMessage.PARAM_MESSAGE);
 		try {
 			Encryption.DecryptAES128(message, byteKey);
 		} catch (Exception e) {
