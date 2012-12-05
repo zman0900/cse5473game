@@ -77,6 +77,7 @@ public class PeerService extends Service {
 	private WifiLock mWifiLock;
 
 	private boolean bootStrapComplete = false;
+	private boolean initFailed = false;
 
 	/**
 	 * Handler of incoming messages from clients.
@@ -160,6 +161,10 @@ public class PeerService extends Service {
 					if (ps.bootStrapComplete) {
 						ps.bootStrapComplete = false;
 						ps.peer.doBootstrap();
+					} else if (ps.initFailed) {
+						ps.initFailed = false;
+						ps.peer.halt();
+						ps.setupPeer();
 					}
 				}
 				break;
@@ -284,7 +289,7 @@ public class PeerService extends Service {
 			}
 			case PeerManager.INIT_FAILED: {
 				Log.d(LOG_TAG, "Init failed");
-				ps.bootStrapComplete = true;
+				ps.initFailed = true;
 				for (int i = ps.mClients.size() - 1; i >= 0; i--) {
 					try {
 						ps.mClients.get(i).send(

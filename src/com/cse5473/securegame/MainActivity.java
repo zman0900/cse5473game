@@ -77,12 +77,14 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		Log.d(LOG_TAG, "onResume");
 		doBindService();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
+		Log.d(LOG_TAG, "onPause");
 		doUnbindService();
 	}
 
