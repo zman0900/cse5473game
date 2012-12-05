@@ -204,5 +204,9 @@ public class PeerManager extends Peer {
 		AckMessage ack = new AckMessage(peerDescriptor);
 		send(new Address(address), ack);
 	}
-
+	
+	public void sendMovePeer(String address, GameView.State state, int index, String key) {
+		MoveMessage m = new MoveMessage(state, index, key);
+		send(new Address(address), m);
+	}
 }
