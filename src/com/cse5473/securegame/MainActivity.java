@@ -175,6 +175,7 @@ public class MainActivity extends Activity {
 			case PeerService.MSG_REC_ACK:
 				ma.startGame();
 				break;
+			// TODO: handle receiving verification and starting game as player 2
 			default:
 				super.handleMessage(msg);
 			}
@@ -247,30 +248,33 @@ public class MainActivity extends Activity {
 	private void promptStartGame(final PeerDescriptor pd) {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		alert.setTitle(R.string.app_name);
-		alert.setMessage(getString(R.string.start_game) + " " + pd.getName() + "?");
-		alert.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Bundle data = new Bundle(1);
-				data.putString(PeerService.DATA_ACK_TARGET, pd.getContactAddress());
-				Message m = Message.obtain(null, PeerService.MSG_SEND_ACK);
-				m.setData(data);
-				try {
-					mService.send(m);
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
+		alert.setMessage(getString(R.string.start_game) + " " + pd.getName()
+				+ "?");
+		alert.setPositiveButton(android.R.string.yes,
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Bundle data = new Bundle(1);
+						data.putString(PeerService.DATA_ACK_TARGET,
+								pd.getContactAddress());
+						Message m = Message.obtain(null,
+								PeerService.MSG_SEND_ACK);
+						m.setData(data);
+						try {
+							mService.send(m);
+						} catch (RemoteException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				});
 		alert.setNegativeButton(android.R.string.no, null);
 		alert.show();
 	}
-	
+
 	private void startGame() {
 		Intent i = new Intent(this, GameActivity.class);
-		i.putExtra(GameActivity.EXTRA_START_PLAYER,
-				State.PLAYER1.getValue());
+		i.putExtra(GameActivity.EXTRA_START_PLAYER, State.PLAYER1.getValue());
 		startActivity(i);
 	}
 

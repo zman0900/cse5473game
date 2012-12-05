@@ -22,5 +22,6 @@
     <string name="peer_service_disconnected">Secure Game disconnected</string>
     <string name="disconnect">Disconnect</string>
     <string name="start_game">Start game with</string>
+    <string name="create_password">Please make up a password and give it to the other player</string>
 
 </resources>

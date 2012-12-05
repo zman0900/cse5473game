@@ -22,8 +22,10 @@ import java.lang.ref.WeakReference;
 import java.util.Random;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -36,6 +38,7 @@ import android.os.Handler.Callback;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.cse5473.securegame.GameView.ICellListener;
@@ -54,7 +57,9 @@ public class GameActivity extends Activity {
 	private GameView mGameView;
 	private TextView mInfoView;
 	private Button mButtonNext;
-	
+
+	private String pass;
+
 	/** Messenger for communicating with service. */
 	Messenger mService = null;
 	private boolean serviceIsBound;
@@ -92,12 +97,15 @@ public class GameActivity extends Activity {
 		mGameView.setCellListener(new MyCellListener());
 
 		mButtonNext.setOnClickListener(new MyButtonListener());
+
+		// If player 1, started game so prompt to make up password
+		promptCreatePassword();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
+
 		doBindService();
 
 		State player = mGameView.getCurrentPlayer();
@@ -116,13 +124,13 @@ public class GameActivity extends Activity {
 			setWinState(mGameView.getWinner());
 		}
 	}
-	
+
 	@Override
 	protected void onPause() {
 		super.onPause();
 		doUnbindService();
 	}
-	
+
 	/**
 	 * Handler of incoming messages from service.
 	 */
@@ -137,7 +145,7 @@ public class GameActivity extends Activity {
 		public void handleMessage(Message msg) {
 			GameActivity ga = ga_ref.get();
 			switch (msg.what) {
-			
+
 			default:
 				super.handleMessage(msg);
 			}
@@ -205,6 +213,24 @@ public class GameActivity extends Activity {
 			serviceIsBound = false;
 			serviceConnection = null;
 		}
+	}
+
+	private void promptCreatePassword() {
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		alert.setTitle(R.string.app_name);
+		alert.setMessage(getString(R.string.create_password));
+		final EditText input = new EditText(this);
+		alert.setView(input);
+		alert.setCancelable(false);
+		alert.setPositiveButton(android.R.string.ok,
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						pass = input.getText().toString();
+						// TODO: Send verification message
+					}
+				});
+		alert.show();
 	}
 
 	private State selectTurn(State player) {
