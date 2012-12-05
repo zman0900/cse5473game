@@ -30,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -180,8 +181,9 @@ public class MainActivity extends Activity {
 			case PeerService.MSG_REC_VERIFICATION:
 				// TODO: handle receiving verification and starting game as
 				// player 2
-				ma.verifyKeyAndJoinGame(msg.getData().getByteArray(
-						PeerService.DATA_BYTES));
+				ma.verifyKeyAndJoinGame(
+						msg.getData().getByteArray(PeerService.DATA_BYTES), msg
+								.getData().getString(PeerService.DATA_SENDER));
 				break;
 			default:
 				super.handleMessage(msg);
@@ -286,7 +288,8 @@ public class MainActivity extends Activity {
 		startActivity(i);
 	}
 
-	private void verifyKeyAndJoinGame(final byte[] bytes) {
+	private void verifyKeyAndJoinGame(final byte[] bytes,
+			final String otherAddress) {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		alert.setTitle(R.string.app_name);
 		alert.setMessage(getString(R.string.enter_password));
@@ -298,10 +301,35 @@ public class MainActivity extends Activity {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						String pass = input.getText().toString();
+						// Send verification message
+						Bundle data = new Bundle(2);
+						data.putString(PeerService.DATA_TARGET, otherAddress);
+						data.putString(PeerService.DATA_KEY, pass);
+						Message m = Message.obtain(null,
+								PeerService.MSG_SEND_VERIFICATION);
+						m.setData(data);
+						try {
+							mService.send(m);
+						} catch (RemoteException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						// Check password
 						if (VerificationMessage.isValidKey(bytes, pass)) {
 							Log.d(LOG_TAG, "verified pass");
+							// Start game
+							Intent i = new Intent(MainActivity.this,
+									GameActivity.class);
+							i.putExtra(GameActivity.EXTRA_START_PLAYER,
+									State.PLAYER2.getValue());
+							i.putExtra(GameActivity.EXTRA_OTHER_ADDRESS,
+									otherAddress);
+							startActivity(i);
 						} else {
 							Log.d(LOG_TAG, "wrong pass");
+							Toast.makeText(MainActivity.this,
+									R.string.wrong_pass, Toast.LENGTH_LONG)
+									.show();
 						}
 					}
 				});

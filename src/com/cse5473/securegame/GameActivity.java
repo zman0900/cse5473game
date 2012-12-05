@@ -35,21 +35,25 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.Handler.Callback;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.cse5473.securegame.GameView.ICellListener;
 import com.cse5473.securegame.GameView.State;
-import com.cse5473.securegame.msg.MoveMessage;
+import com.cse5473.securegame.msg.VerificationMessage;
 
 public class GameActivity extends Activity {
 
 	/** Start player. Must be 1 or 2. Default is 1. */
 	public static final String EXTRA_START_PLAYER = "com.cse5473.securegame.GameActivity.EXTRA_START_PLAYER";
 	public static final String EXTRA_OTHER_ADDRESS = "com.cse5473.securegame.GameActivity.EXTRA_OTHER_ADDRESS";
+
+	private static final String LOG_TAG = "GameActivity";
 
 	private static final int MSG_COMPUTER_TURN = 1;
 	private static final long COMPUTER_DELAY_MS = 500;
@@ -61,6 +65,7 @@ public class GameActivity extends Activity {
 	private Button mButtonNext;
 
 	private String pass;
+	private boolean isPlayer1;
 
 	/** Messenger for communicating with service. */
 	Messenger mService = null;
@@ -101,7 +106,11 @@ public class GameActivity extends Activity {
 		mButtonNext.setOnClickListener(new MyButtonListener());
 
 		// If player 1, started game so prompt to make up password
-		promptCreatePassword();
+		isPlayer1 = (State.fromInt(getIntent().getIntExtra(EXTRA_START_PLAYER,
+				1)) == State.PLAYER1);
+		if (isPlayer1) {
+			promptCreatePassword();
+		}
 	}
 
 	@Override
@@ -147,12 +156,10 @@ public class GameActivity extends Activity {
 		public void handleMessage(Message msg) {
 			GameActivity ga = ga_ref.get();
 			switch (msg.what) {
-			case MoveMessage:
-				MoveMessage m = (MoveMessage)msg;
-				int index = m.getDecryptedIndex(pass);
-				State state = m.getDecryptedState(pass);
-				mGameView.setCell(index, state);
-			break;
+			case PeerService.MSG_REC_VERIFICATION:
+				ga.verifyAndStartAsPlayer1(msg.getData().getByteArray(
+						PeerService.DATA_BYTES));
+				break;
 			default:
 				super.handleMessage(msg);
 			}
@@ -251,6 +258,17 @@ public class GameActivity extends Activity {
 					}
 				});
 		alert.show();
+	}
+
+	private void verifyAndStartAsPlayer1(byte[] bytes) {
+		if (VerificationMessage.isValidKey(bytes, pass)) {
+			Log.d(LOG_TAG, "verified pass");
+			// TODO: start game
+		} else {
+			Log.d(LOG_TAG, "wrong pass");
+			Toast.makeText(this, R.string.wrong_pass, Toast.LENGTH_LONG).show();
+			finish();
+		}
 	}
 
 	private State selectTurn(State player) {

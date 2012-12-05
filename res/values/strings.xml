@@ -24,5 +24,6 @@
     <string name="start_game">Start game with</string>
     <string name="create_password">Please make up a password and give it to the other player</string>
     <string name="enter_password">Enter password</string>
+    <string name="wrong_pass">Wrong password!</string>
 
 </resources>

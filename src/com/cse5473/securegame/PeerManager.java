@@ -194,6 +194,7 @@ public class PeerManager extends Peer {
 				}
 				Bundle data = new Bundle();
 				data.putByteArray(PeerService.DATA_BYTES, bytes);
+				data.putString(PeerService.DATA_SENDER, sender.getURL());
 				Message m = Message.obtain(null, RECEIVED_VERIFY);
 				m.setData(data);
 				handler.sendMessage(m);

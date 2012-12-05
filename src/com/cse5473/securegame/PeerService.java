@@ -87,6 +87,7 @@ public class PeerService extends Service {
 	static final String DATA_TARGET = "target";
 	static final String DATA_KEY = "enc_key";
 	static final String DATA_BYTES = "bytes";
+	static final String DATA_SENDER = "sender";
 
 	private PeerManager peer;
 	private WifiLock mWifiLock;
