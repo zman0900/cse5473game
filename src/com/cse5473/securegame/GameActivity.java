@@ -18,12 +18,20 @@
 
 package com.cse5473.securegame;
 
+import java.lang.ref.WeakReference;
 import java.util.Random;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.os.Handler.Callback;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -46,6 +54,11 @@ public class GameActivity extends Activity {
 	private GameView mGameView;
 	private TextView mInfoView;
 	private Button mButtonNext;
+	
+	/** Messenger for communicating with service. */
+	Messenger mService = null;
+	private boolean serviceIsBound;
+	private ServiceConnection serviceConnection;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -84,6 +97,8 @@ public class GameActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		
+		doBindService();
 
 		State player = mGameView.getCurrentPlayer();
 		if (player == State.UNKNOWN) {
@@ -99,6 +114,96 @@ public class GameActivity extends Activity {
 		}
 		if (player == State.WIN) {
 			setWinState(mGameView.getWinner());
+		}
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		doUnbindService();
+	}
+	
+	/**
+	 * Handler of incoming messages from service.
+	 */
+	static class IncomingHandler extends Handler {
+		private final WeakReference<GameActivity> ga_ref;
+
+		public IncomingHandler(GameActivity gameActivity) {
+			ga_ref = new WeakReference<GameActivity>(gameActivity);
+		}
+
+		@Override
+		public void handleMessage(Message msg) {
+			GameActivity ga = ga_ref.get();
+			switch (msg.what) {
+			
+			default:
+				super.handleMessage(msg);
+			}
+		}
+	}
+
+	/**
+	 * Target we publish for clients to send messages to IncomingHandler.
+	 */
+	final Messenger mMessenger = new Messenger(new IncomingHandler(this));
+
+	private void doBindService() {
+		serviceConnection = new ServiceConnection() {
+			@Override
+			public void onServiceDisconnected(ComponentName name) {
+				// This is called when the connection with the service has been
+				// unexpectedly disconnected -- that is, its process crashed.
+				mService = null;
+			}
+
+			@Override
+			public void onServiceConnected(ComponentName name, IBinder service) {
+				// This is called when the connection with the service has been
+				// established, giving us the service object we can use to
+				// interact with the service. We are communicating with our
+				// service through an IDL interface, so get a client-side
+				// representation of that from the raw service object.
+				mService = new Messenger(service);
+				// We want to monitor the service for as long as we are
+				// connected to it.
+				try {
+					Message msg = Message.obtain(null,
+							PeerService.MSG_REGISTER_CLIENT);
+					msg.replyTo = mMessenger;
+					mService.send(msg);
+				} catch (RemoteException e) {
+					// In this case the service has crashed before we could even
+					// do anything with it; we can count on soon being
+					// disconnected (and then reconnected if it can be
+					// restarted)
+					// so there is no need to do anything here.
+				}
+			}
+		};
+		bindService(new Intent(GameActivity.this, PeerService.class),
+				serviceConnection, Context.BIND_AUTO_CREATE);
+		serviceIsBound = true;
+	}
+
+	private void doUnbindService() {
+		if (serviceIsBound) {
+			if (mService != null) {
+				try {
+					Message msg = Message.obtain(null,
+							PeerService.MSG_UNREGISTER_CLIENT);
+					msg.replyTo = mMessenger;
+					mService.send(msg);
+				} catch (RemoteException e) {
+					// There is nothing special we need to do if the service
+					// has crashed.
+				}
+			}
+			// Detach our existing connection.
+			unbindService(serviceConnection);
+			serviceIsBound = false;
+			serviceConnection = null;
 		}
 	}
 
