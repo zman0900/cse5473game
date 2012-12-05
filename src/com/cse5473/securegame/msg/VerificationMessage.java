@@ -17,21 +17,23 @@ public final class VerificationMessage extends BasicMessage {
 	/**
 	 * 
 	 */
-	private static final String MSG_PEER_VERIFY = "peer_verify", PARAM_MESSAGE = "MESSAGE";
-	
+	private static final String MSG_PEER_VERIFY = "peer_verify",
+			PARAM_MESSAGE = "MESSAGE";
+
 	/**
 	 * 
 	 */
 	private static final Random RANDOM = new Random();
-	
+
 	/**
 	 * 
 	 * @param key
 	 */
-	public VerificationMessage (String key) {
-		super (VerificationMessage.MSG_PEER_VERIFY, new Payload(VerificationMessage.generateParameters(key)));
+	public VerificationMessage(String key) {
+		super(VerificationMessage.MSG_PEER_VERIFY, new Payload(
+				VerificationMessage.generateParameters(key)));
 	}
-	
+
 	/**
 	 * 
 	 * @param key
@@ -42,14 +44,16 @@ public final class VerificationMessage extends BasicMessage {
 		byte[] byteKey;
 		try {
 			byteKey = Encryption.GenerateAES128Key(key);
-			map.put(PARAM_MESSAGE, Encryption.EncryptAES128("" + VerificationMessage.RANDOM.nextInt(Integer.MAX_VALUE), byteKey));
+			map.put(PARAM_MESSAGE, Encryption.EncryptAES128(""
+					+ VerificationMessage.RANDOM.nextInt(Integer.MAX_VALUE),
+					byteKey));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 		return map;
 	}
-	
+
 	/**
 	 * 
 	 * @param key
@@ -63,7 +67,8 @@ public final class VerificationMessage extends BasicMessage {
 			e.printStackTrace();
 			return false;
 		}
-		byte[] message = (byte[]) this.getPayload().getParams().get(VerificationMessage.PARAM_MESSAGE);
+		byte[] message = (byte[]) this.getPayload().getParams()
+				.get(VerificationMessage.PARAM_MESSAGE);
 		try {
 			Encryption.DecryptAES128(message, byteKey);
 		} catch (Exception e) {

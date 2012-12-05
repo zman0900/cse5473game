@@ -5,7 +5,7 @@ import it.unipr.ce.dsg.s2p.message.Payload;
 import it.unipr.ce.dsg.s2p.peer.PeerDescriptor;
 
 public class AckMessage extends BasicMessage {
-	
+
 	public static final String MSG_PEER_ACK = "peer_ack";
 
 	public AckMessage(PeerDescriptor peerDesc) {
