@@ -62,8 +62,8 @@ public class GameActivity extends Activity {
 	private TextView mInfoView;
 	private Button mButtonNext;
 
-	private String pass;
-	private boolean isPlayer1;
+	private static String pass;
+	private static boolean isPlayer1;
 
 	/** Messenger for communicating with service. */
 	Messenger mService = null;
@@ -108,7 +108,7 @@ public class GameActivity extends Activity {
 		// If player 1, started game so prompt to make up password
 		isPlayer1 = (State.fromInt(getIntent().getIntExtra(EXTRA_START_PLAYER,
 				1)) == State.PLAYER1);
-		if (isPlayer1) {
+		if (isPlayer1 && pass == null) {
 			promptCreatePassword();
 		}
 	}
