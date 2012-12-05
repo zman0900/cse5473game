@@ -69,9 +69,16 @@ public class PeerService extends Service {
 	 * MSG_REC_PEER_LIST
 	 */
 	static final int MSG_GET_PEER_LIST = 10;
+	
+	/**
+	 * Command to send ack.  Message's data must contain a bundle with address
+	 * in key DATA_ACK_TARGET
+	 */
+	static final int MSG_SEND_ACK = 11;
 
 	static final String DATA_PEER_LIST = "peer_list";
 	static final String DATA_PING_TARGET = "ping_target";
+	static final String DATA_ACK_TARGET = "ack_target";
 
 	private PeerManager peer;
 	private WifiLock mWifiLock;
@@ -167,6 +174,9 @@ public class PeerService extends Service {
 						ps.setupPeer();
 					}
 				}
+				break;
+			case MSG_SEND_ACK:
+				ps.peer.ackPeer(msg.getData().getString(DATA_ACK_TARGET));
 				break;
 			default:
 				super.handleMessage(msg);
@@ -306,7 +316,8 @@ public class PeerService extends Service {
 			}
 			case PeerManager.RECEIVED_PING: {
 				Log.d(LOG_TAG, "Received ping");
-				Message m = Message.obtain(null, MSG_REC_PING);
+				// msg.obj should be PeerDescriptor
+				Message m = Message.obtain(null, MSG_REC_PING, msg.obj);
 				Bundle data = new Bundle(1);
 				data.putStringArrayList(DATA_PEER_LIST, ps.peer.getPeerList());
 				m.setData(data);

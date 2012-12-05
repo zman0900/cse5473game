@@ -21,5 +21,6 @@
     <string name="peer_service_connected">Secure Game connected</string>
     <string name="peer_service_disconnected">Secure Game disconnected</string>
     <string name="disconnect">Disconnect</string>
+    <string name="start_game">Start game with</string>
 
 </resources>

@@ -1,5 +1,7 @@
 package com.cse5473.securegame;
 
+import it.unipr.ce.dsg.s2p.peer.PeerDescriptor;
+
 import java.lang.ref.WeakReference;
 
 import com.cse5473.securegame.GameView.State;
@@ -14,6 +16,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.util.Log;
@@ -166,15 +169,11 @@ public class MainActivity extends Activity {
 						android.R.layout.simple_list_item_1, msg.getData()
 								.getStringArrayList(PeerService.DATA_PEER_LIST));
 				ma.listView.setAdapter(ma.adapter);
-				Log.i(LOG_TAG, "peer list updated");
-				ma.displayAlert(R.string.rec_ping);
+				Log.i(LOG_TAG, "received ping, peer list updated");
+				ma.promptStartGame((PeerDescriptor) msg.obj);
 				break;
 			case PeerService.MSG_REC_ACK:
-				// main.displayAlert(R.string.rec_ack);
-				Intent i = new Intent(ma, GameActivity.class);
-				i.putExtra(GameActivity.EXTRA_START_PLAYER,
-						State.PLAYER1.getValue());
-				ma.startActivity(i);
+				ma.startGame();
 				break;
 			default:
 				super.handleMessage(msg);
@@ -243,6 +242,36 @@ public class MainActivity extends Activity {
 			serviceIsBound = false;
 			serviceConnection = null;
 		}
+	}
+
+	private void promptStartGame(final PeerDescriptor pd) {
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		alert.setTitle(R.string.app_name);
+		alert.setMessage(getString(R.string.start_game) + " " + pd.getName() + "?");
+		alert.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Bundle data = new Bundle(1);
+				data.putString(PeerService.DATA_ACK_TARGET, pd.getContactAddress());
+				Message m = Message.obtain(null, PeerService.MSG_SEND_ACK);
+				m.setData(data);
+				try {
+					mService.send(m);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		alert.setNegativeButton(android.R.string.no, null);
+		alert.show();
+	}
+	
+	private void startGame() {
+		Intent i = new Intent(this, GameActivity.class);
+		i.putExtra(GameActivity.EXTRA_START_PLAYER,
+				State.PLAYER1.getValue());
+		startActivity(i);
 	}
 
 	private void displayAlert(int resId) {

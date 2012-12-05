@@ -152,9 +152,7 @@ public class PeerManager extends Peer {
 					// Integer size = Integer.valueOf(this.peerList.size());
 				}
 				// Let main know
-				Message m = new Message();
-				m.what = RECEIVED_PEER_LIST;
-				handler.sendMessage(m);
+				handler.sendMessage(Message.obtain(null, RECEIVED_PEER_LIST));
 			} else if (jsonMsg.get("type").equals(PingMessage.MSG_PEER_PING)) {
 				Log.i(LOG_TAG,
 						"received ping message from "
@@ -165,21 +163,15 @@ public class PeerManager extends Peer {
 						"contactAddress").toString());
 				addNeighborPeer(neighborPeerDesc);
 				// Notify of new peer
-				Message m = new Message();
-				m.what = RECEIVED_PING;
-				m.obj = params.get("contactAddress").toString();
-				handler.sendMessage(m);
-				// Send ack to peer
-				ackPeer(params.get("contactAddress").toString());
+				handler.sendMessage(Message.obtain(null, RECEIVED_PING,
+						neighborPeerDesc));
 			} else if (jsonMsg.get("type").equals(AckMessage.MSG_PEER_ACK)) {
 				Log.i(LOG_TAG,
 						"received ack message from "
 								+ params.get("contactAddress"));
 				// Notify of ack
-				Message m = new Message();
-				m.what = RECEIVED_ACK;
-				m.obj = params.get("contactAddress").toString();
-				handler.sendMessage(m);
+				handler.sendMessage(Message.obtain(null, RECEIVED_ACK, params
+						.get("contactAddress").toString()));
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -208,7 +200,7 @@ public class PeerManager extends Peer {
 		send(new Address(address), ping);
 	}
 
-	private void ackPeer(String address) {
+	public void ackPeer(String address) {
 		AckMessage ack = new AckMessage(peerDescriptor);
 		send(new Address(address), ack);
 	}
