@@ -43,11 +43,13 @@ import android.widget.TextView;
 
 import com.cse5473.securegame.GameView.ICellListener;
 import com.cse5473.securegame.GameView.State;
+import com.cse5473.securegame.msg.MoveMessage;
 
 public class GameActivity extends Activity {
 
 	/** Start player. Must be 1 or 2. Default is 1. */
 	public static final String EXTRA_START_PLAYER = "com.cse5473.securegame.GameActivity.EXTRA_START_PLAYER";
+	public static final String EXTRA_OTHER_ADDRESS = "com.cse5473.securegame.GameActivity.EXTRA_OTHER_ADDRESS";
 
 	private static final int MSG_COMPUTER_TURN = 1;
 	private static final long COMPUTER_DELAY_MS = 500;
@@ -234,11 +236,12 @@ public class GameActivity extends Activity {
 						pass = input.getText().toString();
 						// Send verification message
 						Bundle data = new Bundle(2);
-						// TODO: get target address
-						data.putString(PeerService.DATA_TARGET, "");
+						data.putString(PeerService.DATA_TARGET, getIntent()
+								.getStringExtra(EXTRA_OTHER_ADDRESS));
 						data.putString(PeerService.DATA_KEY, pass);
 						Message m = Message.obtain(null,
 								PeerService.MSG_SEND_VERIFICATION);
+						m.setData(data);
 						try {
 							mService.send(m);
 						} catch (RemoteException e) {
@@ -278,7 +281,7 @@ public class GameActivity extends Activity {
 	private class MyButtonListener implements OnClickListener {
 		public void onClick(View v) {
 			State player = mGameView.getCurrentPlayer();
-			
+
 			if (player == State.WIN) {
 				GameActivity.this.finish();
 

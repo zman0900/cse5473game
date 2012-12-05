@@ -5,6 +5,7 @@ import it.unipr.ce.dsg.s2p.peer.PeerDescriptor;
 import java.lang.ref.WeakReference;
 
 import com.cse5473.securegame.GameView.State;
+import com.cse5473.securegame.msg.VerificationMessage;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -173,9 +175,14 @@ public class MainActivity extends Activity {
 				ma.promptStartGame((PeerDescriptor) msg.obj);
 				break;
 			case PeerService.MSG_REC_ACK:
-				ma.startGame();
+				ma.startGame((PeerDescriptor) msg.obj);
 				break;
-			// TODO: handle receiving verification and starting game as player 2
+			case PeerService.MSG_REC_VERIFICATION:
+				// TODO: handle receiving verification and starting game as
+				// player 2
+				ma.verifyKeyAndJoinGame(msg.getData().getByteArray(
+						PeerService.DATA_BYTES));
+				break;
 			default:
 				super.handleMessage(msg);
 			}
@@ -272,10 +279,33 @@ public class MainActivity extends Activity {
 		alert.show();
 	}
 
-	private void startGame() {
+	private void startGame(PeerDescriptor pd) {
 		Intent i = new Intent(this, GameActivity.class);
 		i.putExtra(GameActivity.EXTRA_START_PLAYER, State.PLAYER1.getValue());
+		i.putExtra(GameActivity.EXTRA_OTHER_ADDRESS, pd.getContactAddress());
 		startActivity(i);
+	}
+
+	private void verifyKeyAndJoinGame(final byte[] bytes) {
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		alert.setTitle(R.string.app_name);
+		alert.setMessage(getString(R.string.enter_password));
+		final EditText input = new EditText(this);
+		alert.setView(input);
+		alert.setCancelable(false);
+		alert.setPositiveButton(android.R.string.ok,
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						String pass = input.getText().toString();
+						if (VerificationMessage.isValidKey(bytes, pass)) {
+							Log.d(LOG_TAG, "verified pass");
+						} else {
+							Log.d(LOG_TAG, "wrong pass");
+						}
+					}
+				});
+		alert.show();
 	}
 
 	private void displayAlert(int resId) {

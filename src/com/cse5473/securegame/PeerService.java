@@ -81,10 +81,12 @@ public class PeerService extends Service {
 	 * encryption key in key DATA_KEY
 	 */
 	static final int MSG_SEND_VERIFICATION = 12;
+	static final int MSG_REC_VERIFICATION = 13;
 
 	static final String DATA_PEER_LIST = "peer_list";
 	static final String DATA_TARGET = "target";
 	static final String DATA_KEY = "enc_key";
+	static final String DATA_BYTES = "bytes";
 
 	private PeerManager peer;
 	private WifiLock mWifiLock;
@@ -349,7 +351,24 @@ public class PeerService extends Service {
 				for (int i = ps.mClients.size() - 1; i >= 0; i--) {
 					try {
 						ps.mClients.get(i).send(
-								Message.obtain(null, MSG_REC_ACK));
+								Message.obtain(null, MSG_REC_ACK, msg.obj));
+					} catch (RemoteException e) {
+						Log.d(LOG_TAG, "Remote exception sending ack received");
+						// The client is dead. Remove it from the list;
+						// we are going through the list from back to front
+						// so this is safe to do inside the loop.
+						ps.mClients.remove(i);
+					}
+				}
+				break;
+			}
+			case PeerManager.RECEIVED_VERIFY: {
+				Log.d(LOG_TAG, "Received verify");
+				Message m = Message.obtain(null, MSG_REC_VERIFICATION);
+				m.setData(msg.getData());
+				for (int i = ps.mClients.size() - 1; i >= 0; i--) {
+					try {
+						ps.mClients.get(i).send(m);
 					} catch (RemoteException e) {
 						Log.d(LOG_TAG, "Remote exception sending ack received");
 						// The client is dead. Remove it from the list;

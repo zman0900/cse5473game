@@ -11,6 +11,7 @@ import com.cse5473.securegame.msg.PingMessage;
 import com.cse5473.securegame.msg.VerificationMessage;
 
 import it.unipr.ce.dsg.s2p.message.parser.BasicParser;
+import it.unipr.ce.dsg.s2p.org.json.JSONArray;
 import it.unipr.ce.dsg.s2p.org.json.JSONException;
 import it.unipr.ce.dsg.s2p.org.json.JSONObject;
 import it.unipr.ce.dsg.s2p.peer.NeighborPeerDescriptor;
@@ -20,6 +21,7 @@ import it.unipr.ce.dsg.s2p.sip.Address;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
@@ -36,6 +38,9 @@ public class PeerManager extends Peer {
 	public static final int INIT_FAILED = 2;
 	public static final int RECEIVED_PING = 4;
 	public static final int RECEIVED_ACK = 8;
+	public static final int RECEIVED_VERIFY = 16;
+	public static final int RECEIVED_MOVE = 32;
+	
 	private Handler handler;
 	private Context context;
 
@@ -171,9 +176,31 @@ public class PeerManager extends Peer {
 				Log.i(LOG_TAG,
 						"received ack message from "
 								+ params.get("contactAddress"));
+				PeerDescriptor neighborPeerDesc = new PeerDescriptor(params
+						.get("name").toString(), params.get("address")
+						.toString(), params.get("key").toString(), params.get(
+						"contactAddress").toString());
 				// Notify of ack
-				handler.sendMessage(Message.obtain(null, RECEIVED_ACK, params
-						.get("contactAddress").toString()));
+				handler.sendMessage(Message.obtain(null, RECEIVED_ACK,
+						neighborPeerDesc));
+			} else if (jsonMsg.get("type").equals(
+					VerificationMessage.MSG_PEER_VERIFY)) {
+				Log.i(LOG_TAG,
+						"received verification message");
+				JSONArray arr = (JSONArray) params.get(VerificationMessage.PARAM_MESSAGE);
+				byte[] bytes = new byte[arr.length()];
+				for (int i=0; i<arr.length(); i++) {
+					bytes[i] = (byte) arr.getInt(i);
+				}
+				Bundle data = new Bundle();
+				data.putByteArray(PeerService.DATA_BYTES, bytes);
+				Message m = Message.obtain(null, RECEIVED_VERIFY);
+				m.setData(data);
+				handler.sendMessage(m);
+			} else if (jsonMsg.get("type").equals(MoveMessage.MSG_PEER_MOVE)) {
+				Log.i(LOG_TAG,
+						"received move message from "
+								+ params.get("contactAddress"));
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -211,8 +238,9 @@ public class PeerManager extends Peer {
 		VerificationMessage msg = new VerificationMessage(key);
 		send(new Address(address), msg);
 	}
-	
-	public void sendMovePeer(String address, GameView.State state, int index, String key) {
+
+	public void sendMovePeer(String address, GameView.State state, int index,
+			String key) {
 		MoveMessage m = new MoveMessage(state, index, key);
 		send(new Address(address), m);
 	}

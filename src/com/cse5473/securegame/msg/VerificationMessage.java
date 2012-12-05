@@ -23,7 +23,7 @@ public final class VerificationMessage extends BasicMessage {
 	/**
 	 * The param indentifiers and main identifier for the message.
 	 */
-	private static final String MSG_PEER_VERIFY = "peer_verify",
+	public static final String MSG_PEER_VERIFY = "peer_verify",
 			PARAM_MESSAGE = "MESSAGE";
 
 	/**

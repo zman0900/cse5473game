@@ -14,7 +14,6 @@ import com.cse5473.securegame.GameView;
 
 import it.unipr.ce.dsg.s2p.message.BasicMessage;
 import it.unipr.ce.dsg.s2p.message.Payload;
-import it.unipr.ce.dsg.s2p.peer.PeerDescriptor;
 
 /**
  * Handles the message format for any moves made on the board.
@@ -26,7 +25,7 @@ public final class MoveMessage extends BasicMessage {
 	/**
 	 * The different payload labels.
 	 */
-	private static final String MSG_PEER_MOVE = "peer_move",
+	public static final String MSG_PEER_MOVE = "peer_move",
 			PARAM_STATE = "STATE", PARAM_INDEX = "INDEX";
 
 	/**
