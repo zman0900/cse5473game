@@ -324,6 +324,7 @@ public class MainActivity extends Activity {
 									State.PLAYER2.getValue());
 							i.putExtra(GameActivity.EXTRA_OTHER_ADDRESS,
 									otherAddress);
+							i.putExtra(GameActivity.EXTRA_PASS, pass);
 							startActivity(i);
 						} else {
 							Log.d(LOG_TAG, "wrong pass");
@@ -334,13 +335,6 @@ public class MainActivity extends Activity {
 					}
 				});
 		alert.show();
-	}
-
-	private void displayAlert(int resId) {
-		AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-		alertDialog.setTitle(R.string.alert);
-		alertDialog.setMessage(getString(resId));
-		alertDialog.show();
 	}
 
 }

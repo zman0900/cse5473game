@@ -106,19 +106,10 @@ public final class MoveMessage extends BasicMessage {
 	 *            The key to decrypt the message with.
 	 * @return The state that was stored in the original payload.
 	 */
-	public final GameView.State getDecryptedState(String key) {
-		byte[] msg = (byte[]) this.getPayload().getParams()
-				.get(MoveMessage.PARAM_STATE);
-		byte[] byteKey = null;
-		try {
-			byteKey = Encryption.GenerateAES128Key(key);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			return null;
-		}
+	public static final GameView.State getDecryptedState(byte[] msg, String key) {
 		try {
 			return GameView.State.valueOf(new String(Encryption.DecryptAES128(
-					msg, byteKey)));
+					msg, Encryption.GenerateAES128Key(key))));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -135,19 +126,10 @@ public final class MoveMessage extends BasicMessage {
 	 * @return The decrypted index from the payload, or null iff the key is
 	 *         wrong.
 	 */
-	public final Integer getDecryptedIndex(String key) {
-		byte[] msg = (byte[]) this.getPayload().getParams()
-				.get(MoveMessage.PARAM_INDEX);
-		byte[] byteKey = null;
-		try {
-			byteKey = Encryption.GenerateAES128Key(key);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			return null;
-		}
+	public static final Integer getDecryptedIndex(byte[] msg, String key) {
 		try {
 			return Integer.valueOf(new String(Encryption.DecryptAES128(msg,
-					byteKey)));
+					Encryption.GenerateAES128Key(key))));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

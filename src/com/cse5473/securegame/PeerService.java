@@ -384,7 +384,25 @@ public class PeerService extends Service {
 					try {
 						ps.mClients.get(i).send(m);
 					} catch (RemoteException e) {
-						Log.d(LOG_TAG, "Remote exception sending ack received");
+						Log.d(LOG_TAG,
+								"Remote exception sending verify received");
+						// The client is dead. Remove it from the list;
+						// we are going through the list from back to front
+						// so this is safe to do inside the loop.
+						ps.mClients.remove(i);
+					}
+				}
+				break;
+			}
+			case PeerManager.RECEIVED_MOVE: {
+				Log.d(LOG_TAG, "Received move");
+				Message m = Message.obtain(null, MSG_REC_MOVE);
+				m.setData(msg.getData());
+				for (int i = ps.mClients.size() - 1; i >= 0; i--) {
+					try {
+						ps.mClients.get(i).send(m);
+					} catch (RemoteException e) {
+						Log.d(LOG_TAG, "Remote exception sending move received");
 						// The client is dead. Remove it from the list;
 						// we are going through the list from back to front
 						// so this is safe to do inside the loop.

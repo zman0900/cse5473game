@@ -201,7 +201,19 @@ public class PeerManager extends Peer {
 				handler.sendMessage(m);
 			} else if (jsonMsg.get("type").equals(MoveMessage.MSG_PEER_MOVE)) {
 				Log.i(LOG_TAG, "received move message from " + sender.getURL());
-				
+				// state isn't important
+				JSONArray arr = (JSONArray) params
+						.get(MoveMessage.PARAM_INDEX);
+				byte[] bytes = new byte[arr.length()];
+				for (int i = 0; i < arr.length(); i++) {
+					bytes[i] = (byte) arr.getInt(i);
+				}
+				Bundle data = new Bundle();
+				data.putByteArray(PeerService.DATA_BYTES, bytes);
+				data.putString(PeerService.DATA_SENDER, sender.getURL());
+				Message m = Message.obtain(null, RECEIVED_MOVE);
+				m.setData(data);
+				handler.sendMessage(m);
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();

@@ -43,6 +43,7 @@ import android.widget.Toast;
 
 import com.cse5473.securegame.GameView.ICellListener;
 import com.cse5473.securegame.GameView.State;
+import com.cse5473.securegame.msg.MoveMessage;
 import com.cse5473.securegame.msg.VerificationMessage;
 
 public class GameActivity extends Activity {
@@ -53,6 +54,7 @@ public class GameActivity extends Activity {
 	 **/
 	public static final String EXTRA_START_PLAYER = "com.cse5473.securegame.GameActivity.EXTRA_START_PLAYER";
 	public static final String EXTRA_OTHER_ADDRESS = "com.cse5473.securegame.GameActivity.EXTRA_OTHER_ADDRESS";
+	public static final String EXTRA_PASS = "com.cse5473.securegame.GameActivity.EXTRA_PASS";
 
 	private static final String LOG_TAG = "GameActivity";
 
@@ -117,6 +119,9 @@ public class GameActivity extends Activity {
 
 		isPlayer1 = (State.fromInt(getIntent().getIntExtra(EXTRA_START_PLAYER,
 				1)) == State.PLAYER1);
+		if (!isPlayer1) {
+			pass = getIntent().getStringExtra(EXTRA_PASS);
+		}
 
 		doBindService();
 
@@ -157,9 +162,8 @@ public class GameActivity extends Activity {
 						PeerService.DATA_BYTES));
 				break;
 			case PeerService.MSG_REC_MOVE:
-				// TODO: apply data from message to board, enable for this
-				// player
-				// ga.mGameView.setEnabled(true);
+				ga.moveMessageReceived(msg.getData().getByteArray(
+						PeerService.DATA_BYTES));
 				break;
 			default:
 				super.handleMessage(msg);
@@ -274,6 +278,21 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	private void moveMessageReceived(byte[] bytes) {
+		Integer index = MoveMessage.getDecryptedIndex(bytes, pass);
+		if (index != null) {
+			mGameView.setCell(index, isPlayer1 ? State.PLAYER2 : State.PLAYER1);
+			if (!checkGameFinished(mGameView.getCurrentPlayer())) {
+				mGameView.setEnabled(true);
+				mInfoView.setText(R.string.your_turn);
+			}
+		} else {
+			Log.d(LOG_TAG, "wrong pass");
+			Toast.makeText(this, R.string.wrong_pass, Toast.LENGTH_LONG).show();
+			finish();
+		}
+	}
+
 	private class MyCellListener implements ICellListener {
 		public void onCellSelected() {
 			int cell = mGameView.getSelection();
@@ -308,6 +327,7 @@ public class GameActivity extends Activity {
 						mGameView.setEnabled(false);
 						mButtonNext.setEnabled(false);
 						mInfoView.setText(R.string.waiting_for_other);
+						checkGameFinished(mGameView.getCurrentPlayer());
 					} catch (RemoteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
