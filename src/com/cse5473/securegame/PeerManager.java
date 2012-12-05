@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import com.cse5473.securegame.msg.AckMessage;
 import com.cse5473.securegame.msg.JoinMessage;
+import com.cse5473.securegame.msg.MoveMessage;
 import com.cse5473.securegame.msg.PeerListMessage;
 import com.cse5473.securegame.msg.PingMessage;
 import com.cse5473.securegame.msg.VerificationMessage;
@@ -209,6 +210,11 @@ public class PeerManager extends Peer {
 	public void sendVerification(String address, String key) {
 		VerificationMessage msg = new VerificationMessage(key);
 		send(new Address(address), msg);
+	}
+	
+	public void sendMovePeer(String address, GameView.State state, int index, String key) {
+		MoveMessage m = new MoveMessage(state, index, key);
+		send(new Address(address), m);
 	}
 
 }
