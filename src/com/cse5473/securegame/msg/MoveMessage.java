@@ -27,7 +27,7 @@ public final class MoveMessage extends BasicMessage {
 	 * The different payload labels.
 	 */
 	private static final String MSG_PEER_MOVE = "peer_move",
-			PARAM_STATE = "STATE", PARAM_INDEX = "INDEX", PARAM_PEER = "PEER";
+			PARAM_STATE = "STATE", PARAM_INDEX = "INDEX";
 
 	/**
 	 * Creates a new move message given a state and an index to change the
@@ -35,8 +35,6 @@ public final class MoveMessage extends BasicMessage {
 	 * the person sending the message and the key, while not stored in the
 	 * message, is needed to encrypt the message before it is sent.
 	 * 
-	 * @param peer
-	 *            The peerdescriptor of the sender.
 	 * @param state
 	 *            The state to be updated to.
 	 * @param index
@@ -44,10 +42,9 @@ public final class MoveMessage extends BasicMessage {
 	 * @param key
 	 *            The key to encrypt with.
 	 */
-	public MoveMessage(PeerDescriptor peer, GameView.State state, int index,
-			String key) {
-		super(MoveMessage.MSG_PEER_MOVE, new Payload(generateParamMap(peer,
-				state, index, key)));
+	public MoveMessage(GameView.State state, int index, String key) {
+		super(MoveMessage.MSG_PEER_MOVE, new Payload(generateParamMap(state,
+				index, key)));
 	}
 
 	/**
@@ -67,7 +64,7 @@ public final class MoveMessage extends BasicMessage {
 	 * @return The map containing the encrypted data.
 	 */
 	private static final Map<String, Object> generateParamMap(
-			PeerDescriptor peer, GameView.State state, int index, String key) {
+			GameView.State state, int index, String key) {
 		Map<String, Object> params = new HashMap<String, Object>(0);
 		byte[] byteKey = null;
 		try {
@@ -98,7 +95,6 @@ public final class MoveMessage extends BasicMessage {
 			e.printStackTrace();
 			return null;
 		}
-		params.put(MoveMessage.PARAM_PEER, peer);
 		return params;
 	}
 
@@ -157,16 +153,5 @@ public final class MoveMessage extends BasicMessage {
 			e.printStackTrace();
 			return null;
 		}
-	}
-
-	/**
-	 * Gets the peer descriptor for the person who made the move. This is used
-	 * to verify that it did not come from some random source.
-	 * 
-	 * @return The peer descriptor stored within the payload.
-	 */
-	public final PeerDescriptor getPeerDescriptor() {
-		return (PeerDescriptor) this.getPayload().getParams()
-				.get(MoveMessage.PARAM_PEER);
 	}
 }
