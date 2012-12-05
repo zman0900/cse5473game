@@ -145,7 +145,12 @@ public class GameActivity extends Activity {
 		public void handleMessage(Message msg) {
 			GameActivity ga = ga_ref.get();
 			switch (msg.what) {
-
+			case MoveMessage:
+				MoveMessage m = (MoveMessage)msg;
+				int index = m.getDecryptedIndex(pass);
+				State state = m.getDecryptedState(pass);
+				mGameView.setCell(index, state);
+			break;
 			default:
 				super.handleMessage(msg);
 			}
@@ -259,10 +264,9 @@ public class GameActivity extends Activity {
 	}
 
 	private class MyButtonListener implements OnClickListener {
-
 		public void onClick(View v) {
 			State player = mGameView.getCurrentPlayer();
-
+			
 			if (player == State.WIN) {
 				GameActivity.this.finish();
 
