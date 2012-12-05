@@ -9,8 +9,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import com.cse5473.securegame.Coordinate;
 import com.cse5473.securegame.Encryption;
+import com.cse5473.securegame.GameView.State;
 
 import it.unipr.ce.dsg.s2p.message.BasicMessage;
 import it.unipr.ce.dsg.s2p.message.Payload;
@@ -25,15 +25,15 @@ public final class MoveMessage extends BasicMessage {
 	/**
 	 * 
 	 */
-	private static final String MSG_PEER_MOVE = "peer_move", PARAM_POSITION = "POSITION", PARAM_PEER = "PEER";
+	private static final String MSG_PEER_MOVE = "peer_move", PARAM_STATE = "STATE", PARAM_INDEX = "INDEX", PARAM_PEER = "PEER";
 	
 	/**
 	 * 
 	 * @param peer
 	 * @param pos
 	 */
-	public MoveMessage(PeerDescriptor peer, Coordinate pos, String key) {
-		super (MoveMessage.MSG_PEER_MOVE, new Payload(generateParamMap(peer, pos, key)));
+	public MoveMessage(PeerDescriptor peer, State state, int index, String key) {
+		super (MoveMessage.MSG_PEER_MOVE, new Payload(generateParamMap(peer, state, index, key)));
 	}
 	
 	/**
@@ -43,7 +43,7 @@ public final class MoveMessage extends BasicMessage {
 	 * @param timeStamp
 	 * @return
 	 */
-	private static final Map<String, Object> generateParamMap(PeerDescriptor peer, Coordinate pos, String key) {
+	private static final Map<String, Object> generateParamMap(PeerDescriptor peer, State state, int index, String key) {
 		Map<String, Object> params = new HashMap<String, Object>(0);
 		byte[] byteKey = null;
 		try {
@@ -54,7 +54,8 @@ public final class MoveMessage extends BasicMessage {
 		}
 		
 		try {
-			params.put(MoveMessage.PARAM_POSITION, Encryption.EncryptAES128(pos.toString(), byteKey));
+			params.put(MoveMessage.PARAM_STATE, Encryption.EncryptAES128(state.toString(), byteKey));
+			params.put(MoveMessage.PARAM_INDEX, Encryption.EncryptAES128(Integer.toString(index), byteKey));
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
 			return null;
@@ -80,8 +81,8 @@ public final class MoveMessage extends BasicMessage {
 	 * @param key
 	 * @return
 	 */
-	public final Coordinate getDecryptedCoordinate(String key) {
-		byte[] msg = (byte[]) this.getPayload().getParams().get(MoveMessage.PARAM_POSITION);
+	public final State getDecryptedState(String key) {
+		byte[] msg = (byte[]) this.getPayload().getParams().get(MoveMessage.PARAM_STATE);
 		byte[] byteKey = null;
 		try {
 			byteKey = Encryption.GenerateAES128Key(key);
@@ -90,7 +91,24 @@ public final class MoveMessage extends BasicMessage {
 			return null;
 		}
 		try {
-			return new Coordinate(new String(Encryption.DecryptAES128(msg, byteKey)));
+			return State.valueOf(new String(Encryption.DecryptAES128(msg, byteKey)));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public final Integer getDecryptedIndex(String key) {
+		byte[] msg = (byte[]) this.getPayload().getParams().get(MoveMessage.PARAM_INDEX);
+		byte[] byteKey = null;
+		try {
+			byteKey = Encryption.GenerateAES128Key(key);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return null;
+		}
+		try {
+			return Integer.valueOf(new String(Encryption.DecryptAES128(msg, byteKey)));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
