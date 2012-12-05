@@ -227,7 +227,19 @@ public class GameActivity extends Activity {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						pass = input.getText().toString();
-						// TODO: Send verification message
+						// Send verification message
+						Bundle data = new Bundle(2);
+						// TODO: get target address
+						data.putString(PeerService.DATA_TARGET, "");
+						data.putString(PeerService.DATA_KEY, pass);
+						Message m = Message.obtain(null,
+								PeerService.MSG_SEND_VERIFICATION);
+						try {
+							mService.send(m);
+						} catch (RemoteException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				});
 		alert.show();

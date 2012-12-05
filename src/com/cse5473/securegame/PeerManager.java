@@ -7,6 +7,7 @@ import com.cse5473.securegame.msg.AckMessage;
 import com.cse5473.securegame.msg.JoinMessage;
 import com.cse5473.securegame.msg.PeerListMessage;
 import com.cse5473.securegame.msg.PingMessage;
+import com.cse5473.securegame.msg.VerificationMessage;
 
 import it.unipr.ce.dsg.s2p.message.parser.BasicParser;
 import it.unipr.ce.dsg.s2p.org.json.JSONException;
@@ -203,6 +204,11 @@ public class PeerManager extends Peer {
 	public void ackPeer(String address) {
 		AckMessage ack = new AckMessage(peerDescriptor);
 		send(new Address(address), ack);
+	}
+
+	public void sendVerification(String address, String key) {
+		VerificationMessage msg = new VerificationMessage(key);
+		send(new Address(address), msg);
 	}
 
 }

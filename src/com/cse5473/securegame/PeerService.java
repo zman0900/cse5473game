@@ -54,7 +54,7 @@ public class PeerService extends Service {
 
 	/**
 	 * Command to send a ping. Message's data must contain a bundle with address
-	 * in key DATA_PING_TARGET
+	 * in key DATA_TARGET
 	 */
 	static final int MSG_SEND_PING = 7;
 	static final int MSG_REFRESH = 8;
@@ -69,16 +69,22 @@ public class PeerService extends Service {
 	 * MSG_REC_PEER_LIST
 	 */
 	static final int MSG_GET_PEER_LIST = 10;
-	
+
 	/**
-	 * Command to send ack.  Message's data must contain a bundle with address
-	 * in key DATA_ACK_TARGET
+	 * Command to send ack. Message's data must contain a bundle with address in
+	 * key DATA_TARGET
 	 */
 	static final int MSG_SEND_ACK = 11;
 
+	/**
+	 * Command to send verification. Message's data must contain a bundle with
+	 * encryption key in key DATA_KEY
+	 */
+	static final int MSG_SEND_VERIFICATION = 12;
+
 	static final String DATA_PEER_LIST = "peer_list";
-	static final String DATA_PING_TARGET = "ping_target";
-	static final String DATA_ACK_TARGET = "ack_target";
+	static final String DATA_TARGET = "target";
+	static final String DATA_KEY = "enc_key";
 
 	private PeerManager peer;
 	private WifiLock mWifiLock;
@@ -131,7 +137,7 @@ public class PeerService extends Service {
 				ps.mClients.remove(msg.replyTo);
 				break;
 			case MSG_SEND_PING:
-				ps.peer.pingPeer(msg.getData().getString(DATA_PING_TARGET));
+				ps.peer.pingPeer(msg.getData().getString(DATA_TARGET));
 				break;
 			case MSG_REFRESH:
 				if (ps.bootStrapComplete) {
@@ -176,7 +182,11 @@ public class PeerService extends Service {
 				}
 				break;
 			case MSG_SEND_ACK:
-				ps.peer.ackPeer(msg.getData().getString(DATA_ACK_TARGET));
+				ps.peer.ackPeer(msg.getData().getString(DATA_TARGET));
+				break;
+			case MSG_SEND_VERIFICATION:
+				ps.peer.sendVerification(msg.getData().getString(DATA_TARGET),
+						msg.getData().getString(DATA_KEY));
 				break;
 			default:
 				super.handleMessage(msg);

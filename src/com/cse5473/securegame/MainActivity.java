@@ -58,7 +58,7 @@ public class MainActivity extends Activity {
 				Log.d(LOG_TAG, "clicked "
 						+ ((TextView) view).getText().toString());
 				Bundle data = new Bundle();
-				data.putString(PeerService.DATA_PING_TARGET, ((TextView) view)
+				data.putString(PeerService.DATA_TARGET, ((TextView) view)
 						.getText().toString());
 				Message m = Message.obtain(null, PeerService.MSG_SEND_PING);
 				m.setData(data);
@@ -255,7 +255,7 @@ public class MainActivity extends Activity {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						Bundle data = new Bundle(1);
-						data.putString(PeerService.DATA_ACK_TARGET,
+						data.putString(PeerService.DATA_TARGET,
 								pd.getContactAddress());
 						Message m = Message.obtain(null,
 								PeerService.MSG_SEND_ACK);
