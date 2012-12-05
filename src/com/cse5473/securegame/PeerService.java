@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
+import com.cse5473.securegame.GameView.State;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -83,11 +85,16 @@ public class PeerService extends Service {
 	static final int MSG_SEND_VERIFICATION = 12;
 	static final int MSG_REC_VERIFICATION = 13;
 
+	static final int MSG_SEND_MOVE = 14;
+	static final int MSG_REC_MOVE = 15;
+
 	static final String DATA_PEER_LIST = "peer_list";
 	static final String DATA_TARGET = "target";
 	static final String DATA_KEY = "enc_key";
 	static final String DATA_BYTES = "bytes";
 	static final String DATA_SENDER = "sender";
+	static final String DATA_INDEX = "index";
+	static final String DATA_STATE = "state";
 
 	private PeerManager peer;
 	private WifiLock mWifiLock;
@@ -190,6 +197,12 @@ public class PeerService extends Service {
 			case MSG_SEND_VERIFICATION:
 				ps.peer.sendVerification(msg.getData().getString(DATA_TARGET),
 						msg.getData().getString(DATA_KEY));
+				break;
+			case MSG_SEND_MOVE:
+				ps.peer.sendMovePeer(msg.getData().getString(DATA_TARGET),
+						State.fromInt(msg.getData().getInt(DATA_STATE)), msg
+								.getData().getInt(DATA_INDEX), msg.getData()
+								.getString(DATA_KEY));
 				break;
 			default:
 				super.handleMessage(msg);

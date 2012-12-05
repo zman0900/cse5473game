@@ -35,6 +35,7 @@ import android.os.Message;
 import android.os.Parcelable;
 import android.os.Handler.Callback;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -320,6 +321,7 @@ public class GameView extends View {
 				mBlinkRect.set(MARGIN + x * sxy, MARGIN + y * sxy, MARGIN
 						+ (x + 1) * sxy, MARGIN + (y + 1) * sxy);
 
+				Log.d("FUCK","state is " + state);
 				if (state != State.EMPTY) {
 					// Start the blinker
 					mHandler.sendEmptyMessageDelayed(MSG_BLINK, FPS_MS);

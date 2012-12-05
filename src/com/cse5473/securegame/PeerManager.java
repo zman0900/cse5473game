@@ -40,7 +40,7 @@ public class PeerManager extends Peer {
 	public static final int RECEIVED_ACK = 8;
 	public static final int RECEIVED_VERIFY = 16;
 	public static final int RECEIVED_MOVE = 32;
-	
+
 	private Handler handler;
 	private Context context;
 
@@ -186,10 +186,11 @@ public class PeerManager extends Peer {
 			} else if (jsonMsg.get("type").equals(
 					VerificationMessage.MSG_PEER_VERIFY)) {
 				Log.i(LOG_TAG,
-						"received verification message");
-				JSONArray arr = (JSONArray) params.get(VerificationMessage.PARAM_MESSAGE);
+						"received verification message from " + sender.getURL());
+				JSONArray arr = (JSONArray) params
+						.get(VerificationMessage.PARAM_MESSAGE);
 				byte[] bytes = new byte[arr.length()];
-				for (int i=0; i<arr.length(); i++) {
+				for (int i = 0; i < arr.length(); i++) {
 					bytes[i] = (byte) arr.getInt(i);
 				}
 				Bundle data = new Bundle();
@@ -199,9 +200,8 @@ public class PeerManager extends Peer {
 				m.setData(data);
 				handler.sendMessage(m);
 			} else if (jsonMsg.get("type").equals(MoveMessage.MSG_PEER_MOVE)) {
-				Log.i(LOG_TAG,
-						"received move message from "
-								+ params.get("contactAddress"));
+				Log.i(LOG_TAG, "received move message from " + sender.getURL());
+				
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();

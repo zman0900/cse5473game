@@ -19,7 +19,6 @@
 package com.cse5473.securegame;
 
 import java.lang.ref.WeakReference;
-import java.util.Random;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -34,7 +33,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.os.Handler.Callback;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -49,17 +47,15 @@ import com.cse5473.securegame.msg.VerificationMessage;
 
 public class GameActivity extends Activity {
 
-	/** Start player. Must be 1 or 2. Default is 1. */
+	/**
+	 * Start player. Must be 1 or 2. Default is 1. player 1 is player who
+	 * initiates game
+	 **/
 	public static final String EXTRA_START_PLAYER = "com.cse5473.securegame.GameActivity.EXTRA_START_PLAYER";
 	public static final String EXTRA_OTHER_ADDRESS = "com.cse5473.securegame.GameActivity.EXTRA_OTHER_ADDRESS";
 
 	private static final String LOG_TAG = "GameActivity";
 
-	private static final int MSG_COMPUTER_TURN = 1;
-	private static final long COMPUTER_DELAY_MS = 500;
-
-	private Handler mHandler = new Handler(new MyHandlerCallback());
-	private Random mRnd = new Random();
 	private GameView mGameView;
 	private TextView mInfoView;
 	private Button mButtonNext;
@@ -105,6 +101,8 @@ public class GameActivity extends Activity {
 
 		mButtonNext.setOnClickListener(new MyButtonListener());
 
+		mGameView.setEnabled(false);
+		mButtonNext.setEnabled(false);
 		// If player 1, started game so prompt to make up password
 		isPlayer1 = (State.fromInt(getIntent().getIntExtra(EXTRA_START_PLAYER,
 				1)) == State.PLAYER1);
@@ -117,20 +115,18 @@ public class GameActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 
+		isPlayer1 = (State.fromInt(getIntent().getIntExtra(EXTRA_START_PLAYER,
+				1)) == State.PLAYER1);
+
 		doBindService();
 
 		State player = mGameView.getCurrentPlayer();
 		if (player == State.UNKNOWN) {
 			player = State.fromInt(getIntent().getIntExtra(EXTRA_START_PLAYER,
 					1));
-			if (!checkGameFinished(player)) {
-				selectTurn(player);
-			}
 		}
-		if (player == State.PLAYER2) {
-			mHandler.sendEmptyMessageDelayed(MSG_COMPUTER_TURN,
-					COMPUTER_DELAY_MS);
-		}
+		mGameView.setCurrentPlayer(player);
+		checkGameFinished(player);
 		if (player == State.WIN) {
 			setWinState(mGameView.getWinner());
 		}
@@ -159,6 +155,11 @@ public class GameActivity extends Activity {
 			case PeerService.MSG_REC_VERIFICATION:
 				ga.verifyAndStartAsPlayer1(msg.getData().getByteArray(
 						PeerService.DATA_BYTES));
+				break;
+			case PeerService.MSG_REC_MOVE:
+				// TODO: apply data from message to board, enable for this
+				// player
+				// ga.mGameView.setEnabled(true);
 				break;
 			default:
 				super.handleMessage(msg);
@@ -251,6 +252,7 @@ public class GameActivity extends Activity {
 						m.setData(data);
 						try {
 							mService.send(m);
+							mInfoView.setText(R.string.waiting_for_other);
 						} catch (RemoteException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -263,7 +265,8 @@ public class GameActivity extends Activity {
 	private void verifyAndStartAsPlayer1(byte[] bytes) {
 		if (VerificationMessage.isValidKey(bytes, pass)) {
 			Log.d(LOG_TAG, "verified pass");
-			// TODO: start game
+			mGameView.setEnabled(true);
+			mInfoView.setText(R.string.your_turn);
 		} else {
 			Log.d(LOG_TAG, "wrong pass");
 			Toast.makeText(this, R.string.wrong_pass, Toast.LENGTH_LONG).show();
@@ -271,28 +274,11 @@ public class GameActivity extends Activity {
 		}
 	}
 
-	private State selectTurn(State player) {
-		mGameView.setCurrentPlayer(player);
-		mButtonNext.setEnabled(false);
-
-		if (player == State.PLAYER1) {
-			mInfoView.setText(R.string.player1_turn);
-			mGameView.setEnabled(true);
-
-		} else if (player == State.PLAYER2) {
-			mInfoView.setText(R.string.player2_turn);
-			mGameView.setEnabled(false);
-		}
-
-		return player;
-	}
-
 	private class MyCellListener implements ICellListener {
 		public void onCellSelected() {
-			if (mGameView.getCurrentPlayer() == State.PLAYER1) {
-				int cell = mGameView.getSelection();
-				mButtonNext.setEnabled(cell >= 0);
-			}
+			int cell = mGameView.getSelection();
+			Log.d(LOG_TAG, "Clicked cell " + cell);
+			mButtonNext.setEnabled(cell >= 0);
 		}
 	}
 
@@ -303,55 +289,30 @@ public class GameActivity extends Activity {
 			if (player == State.WIN) {
 				GameActivity.this.finish();
 
-			} else if (player == State.PLAYER1) {
+			} else {
 				int cell = mGameView.getSelection();
 				if (cell >= 0) {
 					mGameView.stopBlink();
 					mGameView.setCell(cell, player);
-					finishTurn();
-				}
-			}
-		}
-	}
 
-	private class MyHandlerCallback implements Callback {
-		public boolean handleMessage(Message msg) {
-			if (msg.what == MSG_COMPUTER_TURN) {
-
-				// Pick a non-used cell at random. That's about all the AI you
-				// need for this game.
-				State[] data = mGameView.getData();
-				int used = 0;
-				while (used != 0x1F) {
-					int index = mRnd.nextInt(9);
-					if (((used >> index) & 1) == 0) {
-						used |= 1 << index;
-						if (data[index] == State.EMPTY) {
-							mGameView.setCell(index,
-									mGameView.getCurrentPlayer());
-							break;
-						}
+					Bundle data = new Bundle(4);
+					data.putString(PeerService.DATA_TARGET, getIntent()
+							.getStringExtra(EXTRA_OTHER_ADDRESS));
+					data.putInt(PeerService.DATA_STATE, player.getValue());
+					data.putInt(PeerService.DATA_INDEX, cell);
+					data.putString(PeerService.DATA_KEY, pass);
+					Message m = Message.obtain(null, PeerService.MSG_SEND_MOVE);
+					m.setData(data);
+					try {
+						mService.send(m);
+						mGameView.setEnabled(false);
+						mButtonNext.setEnabled(false);
+						mInfoView.setText(R.string.waiting_for_other);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
-
-				finishTurn();
-				return true;
-			}
-			return false;
-		}
-	}
-
-	private State getOtherPlayer(State player) {
-		return player == State.PLAYER1 ? State.PLAYER2 : State.PLAYER1;
-	}
-
-	private void finishTurn() {
-		State player = mGameView.getCurrentPlayer();
-		if (!checkGameFinished(player)) {
-			player = selectTurn(getOtherPlayer(player));
-			if (player == State.PLAYER2) {
-				mHandler.sendEmptyMessageDelayed(MSG_COMPUTER_TURN,
-						COMPUTER_DELAY_MS);
 			}
 		}
 	}
@@ -424,10 +385,10 @@ public class GameActivity extends Activity {
 
 		if (player == State.EMPTY) {
 			text = getString(R.string.tie);
-		} else if (player == State.PLAYER1) {
-			text = getString(R.string.player1_win);
+		} else if (player == State.PLAYER1 && isPlayer1) {
+			text = getString(R.string.you_win);
 		} else {
-			text = getString(R.string.player2_win);
+			text = getString(R.string.you_lose);
 		}
 		mInfoView.setText(text);
 	}
