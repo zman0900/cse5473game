@@ -40,11 +40,20 @@ import it.unipr.ce.dsg.s2p.peer.PeerDescriptor;
  */
 
 public class JoinMessage extends BasicMessage {
-
+	/**
+	 * 
+	 */
 	private int numPeerList;
 
+	/**
+	 * 
+	 */
 	public static final String MSG_PEER_JOIN = "peer_join";
 
+	/**
+	 * 
+	 * @param peerDesc
+	 */
 	public JoinMessage(PeerDescriptor peerDesc) {
 
 		super(MSG_PEER_JOIN, new Payload(peerDesc));
@@ -60,10 +69,18 @@ public class JoinMessage extends BasicMessage {
 		setNumPeerList(0);
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int getNumPeerList() {
 		return numPeerList;
 	}
 
+	/**
+	 * 
+	 * @param numPeerList
+	 */
 	public void setNumPeerList(int numPeerList) {
 		this.numPeerList = numPeerList;
 	}

@@ -39,9 +39,18 @@ import it.unipr.ce.dsg.s2p.peer.PeerDescriptor;
  * 
  */
 public class PingMessage extends BasicMessage {
-
+	/**
+	 * This is the indentifier string for the pin message.
+	 */
 	public static final String MSG_PEER_PING = "peer_ping";
 
+	/**
+	 * Same as the ack message, this message contains the peerdescriptor for the
+	 * peer who sent the message, it is accessible through the payload.
+	 * 
+	 * @param peerDesc
+	 *            The peer who sent the message
+	 */
 	public PingMessage(PeerDescriptor peerDesc) {
 
 		super(MSG_PEER_PING, new Payload(peerDesc));

@@ -41,12 +41,22 @@ import it.unipr.ce.dsg.s2p.peer.PeerListManager;
  */
 
 public class PeerListMessage extends BasicMessage {
-
+	/**
+	 * The string modifier for the original label of this message.
+	 */
 	public static final String MSG_PEER_LIST = "peer_list";
 
+	/**
+	 * The peer list message is basically a conduit for the peerlist to be sent
+	 * to all users by the program. It takes in a peerlistmanager that is then
+	 * stored into the payload for access later by the user who recieves this
+	 * message.
+	 * 
+	 * @param peerList
+	 *            The peerlistmanager to be stored directly in the payload.
+	 */
 	public PeerListMessage(PeerListManager peerList) {
 		super(MSG_PEER_LIST, new Payload(peerList));
 
 	}
-
 }

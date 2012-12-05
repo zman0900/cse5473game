@@ -10,43 +10,28 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
+ * This is the main class for encryption. It is a purely static class and should
+ * NEVER be instantiated. To encrypt anything first generate a key based on some
+ * arbitrary input string (Can be of any length). Then, this will generate the
+ * MD5 hash of the input string, to be used for the encryption. After it is
+ * encrypted, the key will need to be stored to call decrypt in the future and
+ * regain access to the data.
  * 
  * @author Caruso.66
  */
 public final class Encryption {
-	private static String KEY = "PASSWORD!!", MESSAGE = "HELLO";
-
-	public static void main(String[] args) throws Exception {
-		System.out.println("Hex MSG = "
-				+ Encryption.asHex(Encryption.MESSAGE.getBytes()));
-		System.out.println("Hex KEY = "
-				+ Encryption.asHex(Encryption.KEY.getBytes()));
-
-		byte[] key = Encryption.GenerateAES128Key(Encryption.KEY);
-
-		System.out.println("Generated key based on [ " + KEY + " ]: "
-				+ Encryption.asHex(key));
-
-		byte[] encryption = Encryption.EncryptAES128(Encryption.MESSAGE, key);
-
-		System.out.println("Generated encryption based on [ " + MESSAGE + " ]:"
-				+ Encryption.asHex(encryption));
-
-		byte[] decryption = Encryption.DecryptAES128(encryption, key);
-
-		System.out.println("Decrypted as:" + Encryption.asHex(decryption));
-	}
-
 	/**
+	 * This is the main encryption workhorse for our game. It takes in a string
+	 * and then easily encrypts it using whatever 128bit byte array was passed.
 	 * 
 	 * @param message
+	 *            The message to be encrypted.
 	 * @param key
-	 * @return
-	 * @throws NoSuchAlgorithmException
-	 * @throws NoSuchPaddingException
-	 * @throws InvalidKeyException
-	 * @throws IllegalBlockSizeException
-	 * @throws BadPaddingException
+	 *            The 128-bit byte array representing the key.
+	 * @return A byte[] representing the encrypted value.
+	 * @throws Exception
+	 *             Only thrown when the key is invalid for any reason (length,
+	 *             etc)...
 	 */
 	public static byte[] EncryptAES128(String message, byte[] key)
 			throws NoSuchAlgorithmException, NoSuchPaddingException,
@@ -75,9 +60,12 @@ public final class Encryption {
 	}
 
 	/**
+	 * Takes in a string and returns a byte[] representing the MD5 hash of the
+	 * value.
 	 * 
-	 * @return
+	 * @return The MD5 byte[] of the value.
 	 * @throws NoSuchAlgorithmException
+	 *             Never thrown, against ensures clause.
 	 */
 	public static byte[] GenerateAES128Key(String message)
 			throws NoSuchAlgorithmException {
@@ -86,11 +74,17 @@ public final class Encryption {
 	}
 
 	/**
+	 * Decrypts the encrypted message based on whatever key is input into the
+	 * key field. If the key is not, in fact, the key that was used to encrypt
+	 * the string then this will exit due to exceptions.
 	 * 
 	 * @param encrypted
+	 *            The encrypted byte array.
 	 * @param key
-	 * @return
+	 *            The correct 128-bit key.
+	 * @return The byte[] of the original message.
 	 * @throws Exception
+	 *             Iff the key is invalid (As determined by our HMAC).
 	 */
 	public static byte[] DecryptAES128(byte[] encrypted, byte[] key)
 			throws Exception {
@@ -133,7 +127,8 @@ public final class Encryption {
 	 * Pretty Print for byte arrays.
 	 * 
 	 * @param buf
-	 * @return
+	 *            The byte[] to be printed as hexidecimal.
+	 * @return The String of the byte[] buf.
 	 */
 	public static String asHex(byte buf[]) {
 		StringBuffer strbuf = new StringBuffer(buf.length * 2);
