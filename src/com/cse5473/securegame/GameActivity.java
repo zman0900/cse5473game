@@ -46,31 +46,80 @@ import com.cse5473.securegame.GameView.State;
 import com.cse5473.securegame.msg.MoveMessage;
 import com.cse5473.securegame.msg.VerificationMessage;
 
+/**
+ * This is the main activity for any initiated game. This activity gets called
+ * by the main activity after the verification messages have been sent along
+ * with the Ping and acknowledgement messages have also been sent and recieved
+ * accordingly.
+ */
 public class GameActivity extends Activity {
 
 	/**
-	 * Start player. Must be 1 or 2. Default is 1. player 1 is player who
-	 * initiates game
-	 **/
+	 * The player represetned as player one.
+	 */
 	public static final String EXTRA_START_PLAYER = "com.cse5473.securegame.GameActivity.EXTRA_START_PLAYER";
+
+	/**
+	 * The player represented as player two.
+	 */
 	public static final String EXTRA_OTHER_ADDRESS = "com.cse5473.securegame.GameActivity.EXTRA_OTHER_ADDRESS";
+
+	/**
+	 * ?
+	 */
 	public static final String EXTRA_PASS = "com.cse5473.securegame.GameActivity.EXTRA_PASS";
 
+	/**
+	 * The tag for logging so we know the source of errors.
+	 */
 	private static final String LOG_TAG = "GameActivity";
 
+	/**
+	 * The game view associated with the activity.
+	 */
 	private GameView mGameView;
+
+	/**
+	 * The info panel for telling the user it's their turn or displaying a win
+	 * message.
+	 */
 	private TextView mInfoView;
+
+	/**
+	 * The button used for move submission.
+	 */
 	private Button mButtonNext;
 
+	/**
+	 * The private shared key.
+	 */
 	private static String pass;
+
+	/**
+	 * True iff this playere initiated the game.
+	 */
 	private static boolean isPlayer1;
 
-	/** Messenger for communicating with service. */
+	/**
+	 * The messenger that allows for communication with the peerservices.
+	 */
 	Messenger mService = null;
+
+	/**
+	 * True iff the service is already bound.
+	 */
 	private boolean serviceIsBound;
+
+	/**
+	 * The service connection that allows the GameActivity to communicate with
+	 * the PeerManager defined in the MainActivity
+	 */
 	private ServiceConnection serviceConnection;
 
-	/** Called when the activity is first created. */
+	/**
+	 * Called when the activity it created. It initialized all variables and
+	 * prompts for the person to enter a password for the verification message.
+	 */
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
@@ -113,6 +162,13 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	/**
+	 * Handles the resuming of the activity should it ever be paused.
+	 * Unfortunately this is known to be extremely glitchy when playing two
+	 * player games,. It handles resuming just fine, however, if the other
+	 * player for some reason deicdes to pause the game as well it gets a tad
+	 * screwy.
+	 */
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -137,6 +193,10 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	/**
+	 * Handles the unbinding of the service when the game is paused or the user
+	 * exits to the main menu for any reason.
+	 */
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -176,6 +236,12 @@ public class GameActivity extends Activity {
 	 */
 	final Messenger mMessenger = new Messenger(new IncomingHandler(this));
 
+	/**
+	 * Binds the service. This is the call that allows communication between the
+	 * peerservice, peermanager and the gameactivity. If it wasn't for the
+	 * service being bound we'd have trouble with the consistency of the
+	 * communications.
+	 */
 	private void doBindService() {
 		serviceConnection = new ServiceConnection() {
 			@Override
@@ -214,6 +280,9 @@ public class GameActivity extends Activity {
 		serviceIsBound = true;
 	}
 
+	/**
+	 * Unbinds the bound peerservice between two peers.
+	 */
 	private void doUnbindService() {
 		if (serviceIsBound) {
 			if (mService != null) {
@@ -234,6 +303,10 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	/**
+	 * Prompts the user to create a password, the user then creates a password
+	 * and verification message is sent to the bound peer.
+	 */
 	private void promptCreatePassword() {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		alert.setTitle(R.string.app_name);
@@ -266,6 +339,10 @@ public class GameActivity extends Activity {
 		alert.show();
 	}
 
+	/**
+	 * Used to verify that the other peer has responded with a valid key (This
+	 * means that the key was successfully shared!)
+	 */
 	private void verifyAndStartAsPlayer1(byte[] bytes) {
 		if (VerificationMessage.isValidKey(bytes, pass)) {
 			Log.d(LOG_TAG, "verified pass");
@@ -278,6 +355,10 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	/**
+	 * This updates the game state upon reciving a message stating that the
+	 * other player has made a move.
+	 */
 	private void moveMessageReceived(byte[] bytes) {
 		Integer index = MoveMessage.getDecryptedIndex(bytes, pass);
 		if (index != null) {
@@ -293,6 +374,10 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	/**
+	 * The cell listener that is to be bound to the GameView for communication
+	 * between the activity and the graphics.
+	 */
 	private class MyCellListener implements ICellListener {
 		public void onCellSelected() {
 			int cell = mGameView.getSelection();
@@ -301,6 +386,11 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	/**
+	 * This handles the case that the button is pressed, therefore it basically
+	 * sends the move messages, disables the player from touching the game board
+	 * then switches turns.
+	 */
 	private class MyButtonListener implements OnClickListener {
 		public void onClick(View v) {
 			State player = mGameView.getCurrentPlayer();
@@ -337,6 +427,10 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	/**
+	 * This is the method to check whether or not a player has won the game. It
+	 * only returns true if it detects 3 chars in a row col or diagonal.
+	 */
 	public boolean checkGameFinished(State player) {
 		State[] data = mGameView.getData();
 		boolean full = true;
@@ -387,6 +481,11 @@ public class GameActivity extends Activity {
 		return false;
 	}
 
+	/**
+	 * Sets the game as finished. The integers are all -1 unless the game WAS
+	 * indeed finished, then the row or col must be 0-2 or the diagonal must be
+	 * 0-1. This allows for the GameView to paint the winnning lines.
+	 */
 	private void setFinished(State player, int col, int row, int diagonal) {
 
 		mGameView.setCurrentPlayer(State.WIN);
@@ -397,6 +496,10 @@ public class GameActivity extends Activity {
 		setWinState(player);
 	}
 
+	/**
+	 * Sets the player who won in the GameView. This allows for the gameview to
+	 * display messages like "YOU WIN!".
+	 */
 	private void setWinState(State player) {
 		mButtonNext.setEnabled(true);
 		mButtonNext.setText("Back");

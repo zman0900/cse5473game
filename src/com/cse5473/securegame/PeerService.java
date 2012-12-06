@@ -24,16 +24,36 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
+/**
+ * This is the main peer service for use within the peer manager. It keeps track
+ * of registered clients, prepares messages to be sent and completes various
+ * other remedial tasks.
+ */
 public class PeerService extends Service {
-
+	/**
+	 * The default port of the peer service.
+	 */
 	private static final int DEFAULT_PORT = 12345;
+
+	/**
+	 * The logging tag of the peer service.
+	 */
 	private static final String LOG_TAG = "PeerService";
 
-	// Unique Identification Number for the Notification.
-	// We use it on Notification start, and to cancel it.
+	/**
+	 * The notification integer for a connection of peers.
+	 */
 	private int NOTIFICATION = R.string.peer_service_connected;
+
+	/**
+	 * The notification manager to send messages to peers.
+	 */
 	private NotificationManager mNM;
-	/** Keeps track of all current registered clients. */
+	
+	/**
+	 *  Keeps track of all current registered clients. 
+	 *  
+	 */
 	ArrayList<Messenger> mClients = new ArrayList<Messenger>();
 
 	/**
@@ -49,9 +69,25 @@ public class PeerService extends Service {
 	 * Messenger of the client as previously given with MSG_REGISTER_CLIENT.
 	 */
 	static final int MSG_UNREGISTER_CLIENT = 2;
+
+	/**
+	 * The message for message failure.
+	 */
 	static final int MSG_INIT_FAILED = 3;
+
+	/**
+	 * The message to recieve the list of peers stored in a peer manager.
+	 */
 	static final int MSG_REC_PEER_LIST = 4;
+
+	/**
+	 * The message integer for the initial ping.
+	 */
 	static final int MSG_REC_PING = 5;
+
+	/**
+	 * The message for the followup acknowledgement.
+	 */
 	static final int MSG_REC_ACK = 6;
 
 	/**
@@ -59,6 +95,10 @@ public class PeerService extends Service {
 	 * in key DATA_TARGET
 	 */
 	static final int MSG_SEND_PING = 7;
+	
+	/**
+	 * Command to send a refresh message.
+	 */
 	static final int MSG_REFRESH = 8;
 
 	/**
@@ -83,23 +123,76 @@ public class PeerService extends Service {
 	 * encryption key in key DATA_KEY
 	 */
 	static final int MSG_SEND_VERIFICATION = 12;
+
+	/**
+	 * The message command for receiving a verification.
+	 */
 	static final int MSG_REC_VERIFICATION = 13;
 
+	/**
+	 * The message command for sending a move.
+	 */
 	static final int MSG_SEND_MOVE = 14;
+
+	/**
+	 * The message command for receiving a move.
+	 */
 	static final int MSG_REC_MOVE = 15;
 
+	/**
+	 * The string representation of the peerlist (JSON).
+	 */
 	static final String DATA_PEER_LIST = "peer_list";
+
+	/**
+	 * The string representation of the target of the message (JSON).
+	 */
 	static final String DATA_TARGET = "target";
+
+	/**
+	 * The string representation of the encryption key of the message (JSON).
+	 */
 	static final String DATA_KEY = "enc_key";
+
+	/**
+	 * The string representation of the bytes of the message (JSON).
+	 */
 	static final String DATA_BYTES = "bytes";
+
+	/**
+	 * The string representation of the sender of the message (JSON).
+	 */
 	static final String DATA_SENDER = "sender";
+
+	/**
+	 * The string representation of the index of the move message (JSON).
+	 */
 	static final String DATA_INDEX = "index";
+
+	/**
+	 * The string representation of the state of the move message (JSON).
+	 */
 	static final String DATA_STATE = "state";
 
+	/**
+	 * The peer manager that is watched by the service.
+	 */
 	private PeerManager peer;
+
+	/**
+	 * ?
+	 */
 	private WifiLock mWifiLock;
 
+	/**
+	 * Whether or not the peer is tethered to the bootstrap currently.
+	 */
 	private boolean bootStrapComplete = false;
+
+	/**
+	 * Whether or not the initiation of the peer failed (Due to wifi errors,
+	 * etc).
+	 */
 	private boolean initFailed = false;
 
 	/**
@@ -215,11 +308,18 @@ public class PeerService extends Service {
 	 */
 	final Messenger mMessenger = new Messenger(new IncomingHandler(this));
 
+	/**
+	 * Binds the intent to the peer.
+	 */
 	@Override
 	public IBinder onBind(Intent intent) {
 		return mMessenger.getBinder();
 	}
 
+	/**
+	 * Called when the initial peerservice is created. Used for initiation
+	 * purposes.
+	 */
 	@Override
 	public void onCreate() {
 		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -233,6 +333,10 @@ public class PeerService extends Service {
 		}
 	}
 
+	/**
+	 * Starts the peer by calling setup, then notifies the user when this has
+	 * been completed.
+	 */
 	private void startPeer() {
 		setupPeer();
 		// Display a notification about us starting. We put an icon in the
@@ -240,6 +344,17 @@ public class PeerService extends Service {
 		showNotification();
 	}
 
+	/**
+	 * Handles the command to begin from the given Intent. the parameters are
+	 * used solely for logging purposes.
+	 * 
+	 * @param intent
+	 *            The intent to be logged.
+	 * @param flags
+	 *            The flags to be logged.
+	 * @param startId
+	 *            The starting ID to be logged.
+	 */
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.i("PeerService", "Received start id " + startId + ": " + intent);
@@ -248,6 +363,9 @@ public class PeerService extends Service {
 		return START_STICKY;
 	}
 
+	/**
+	 * Handles the destruction of the peerservices.
+	 */
 	@Override
 	public void onDestroy() {
 		// Cancel the persistent notification.
@@ -417,6 +535,10 @@ public class PeerService extends Service {
 		}
 	}
 
+	/**
+	 * Sets up the peer, to be used to assign a peer manager to the peer
+	 * service.
+	 */
 	private void setupPeer() {
 		String username = SettingsActivity.getUsername(this);
 		MessageDigest md;

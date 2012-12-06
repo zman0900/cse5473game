@@ -15,12 +15,23 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
+/**
+ * This class is simply to allow selection of a username when you first connect
+ * to the bootstrap, while slightly pointless it give a nice athstetic feel to
+ * the program.
+ * 
+ */
 @SuppressWarnings("deprecation")
 public class SettingsActivity extends PreferenceActivity implements
 		OnSharedPreferenceChangeListener {
-
+	/**
+	 * The string representation of the parameter of the username.
+	 */
 	public static final String KEY_PREF_USERNAME = "pref_username";
 
+	/**
+	 * On the creating of the activity it gets a default name for the user.
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -32,6 +43,10 @@ public class SettingsActivity extends PreferenceActivity implements
 				sharedPref.getString(KEY_PREF_USERNAME, ""));
 	}
 
+	/**
+	 * This method allows for the user to input a custom identifier as their
+	 * name and handles the onResume portion of the activity.
+	 */
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -39,6 +54,9 @@ public class SettingsActivity extends PreferenceActivity implements
 				.registerOnSharedPreferenceChangeListener(this);
 	}
 
+	/**
+	 * Handles if the activity is paused.
+	 */
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -46,6 +64,9 @@ public class SettingsActivity extends PreferenceActivity implements
 				.unregisterOnSharedPreferenceChangeListener(this);
 	}
 
+	/**
+	 * Handles when the user already has a username and wishes to change it.
+	 */
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
@@ -61,6 +82,13 @@ public class SettingsActivity extends PreferenceActivity implements
 		}
 	}
 
+	/**
+	 * Creates a random default username for the user provided that they didn't
+	 * want to make a username based on the provided context.
+	 * 
+	 * @param context
+	 *            The context to glean information from and create the username.
+	 */
 	public static void createRandomUsername(Context context) {
 		Random r = new Random();
 		String username = new String("android-"
@@ -74,6 +102,13 @@ public class SettingsActivity extends PreferenceActivity implements
 				.show();
 	}
 
+	/**
+	 * Prompts for the user's desired username using an AlertDialog. If the user
+	 * inputs a username and does not hit cancel it sets up teh peer.
+	 * 
+	 * @param main
+	 *            The MainActivity to have the peer setup in.
+	 */
 	public static void promptForUsernameThenSetupPeer(MainActivity main) {
 		AlertDialog.Builder alert = new AlertDialog.Builder(main);
 		alert.setTitle(R.string.username);
@@ -104,13 +139,28 @@ public class SettingsActivity extends PreferenceActivity implements
 				});
 		alert.show();
 	}
-
+	
+	/**
+	 * Checks to see if the username is already defined within the given
+	 * context.
+	 * 
+	 * @param context
+	 *            The context to glean information from.
+	 * @return True iff the username is already defined.
+	 */
 	public static boolean isUsernameSet(Context context) {
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(context);
 		return !sharedPref.getString(KEY_PREF_USERNAME, "").equals("");
 	}
 
+	/**
+	 * Gets the username of the provided context.
+	 * 
+	 * @param context
+	 *            the context to glean information from.
+	 * @return the string representation of the username.
+	 */
 	public static String getUsername(Context context) {
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(context);

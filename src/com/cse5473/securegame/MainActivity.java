@@ -32,19 +32,52 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * This is the main activity. It handles all of the peerlist functions and the
+ * bootstrapping of the peer to the VPS. This is the activity to be run by the
+ * android process to start the application.
+ */
 public class MainActivity extends Activity {
-
+	/**
+	 * Used for logging so we know where the error (Or otherwise) came from.
+	 */
 	private static final String LOG_TAG = "main";
 
+	/**
+	 * This is the adapter for use in the list view of all the peers.
+	 */
 	private ArrayAdapter<String> adapter;
+
+	/**
+	 * Used for any messages the MainAcitvity needs to send.
+	 */
 	private TextView message;
+
+	/**
+	 * Used to represent the list of peers in a visible manner.
+	 */
 	private ListView listView;
 
-	/** Messenger for communicating with service. */
+	/**
+	 * This is the messenger for communicating with the service.
+	 */
 	Messenger mService = null;
+
+	/**
+	 * The boolean representing whether or not the servcice is bound.
+	 */
 	private boolean serviceIsBound;
+
+	/**
+	 * The service connection for the main activity, allows for communication
+	 * between the activity and the bootstrap.
+	 */
 	private ServiceConnection serviceConnection;
 
+	/**
+	 * Handles the creating of the activity. This method build the initial
+	 * layout of the peer list to be displayed.
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -80,6 +113,9 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	/**
+	 * Handles the binding of the service when resumed from a paused state.
+	 */
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -87,6 +123,9 @@ public class MainActivity extends Activity {
 		doBindService();
 	}
 
+	/**
+	 * Handles the unbinding of the service when pausing from a resumed state.
+	 */
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -94,12 +133,18 @@ public class MainActivity extends Activity {
 		doUnbindService();
 	}
 
+	/**
+	 * Handles the closing of the activity.
+	 */
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.d(LOG_TAG, "onDestroy");
 	}
 
+	/**
+	 * Allows for input of a username.
+	 */
 	public void userNameSet() {
 		try {
 			mService.send(Message.obtain(null, PeerService.MSG_USERNAME_SET));
@@ -109,12 +154,21 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	/**
+	 * Used to set up the top menu bar for refreshing, disconnecting and the
+	 * drop down options button.
+	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
 
+	/**
+	 * Handles the case where an item in the menu is selected, such as
+	 * refreshing, disconnecting and the settings menu that handles the setup of
+	 * the username.
+	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -196,6 +250,11 @@ public class MainActivity extends Activity {
 	 */
 	final Messenger mMessenger = new Messenger(new IncomingHandler(this));
 
+	/**
+	 * Binds the service connection to the service of the main activity, this is
+	 * used when we are trying to initiate a connection between two peers or
+	 * just between a peer and the bootstrap.
+	 */
 	private void doBindService() {
 		serviceConnection = new ServiceConnection() {
 			@Override
@@ -234,6 +293,11 @@ public class MainActivity extends Activity {
 		serviceIsBound = true;
 	}
 
+	/**
+	 * Handles the unbinding of a peer from the bootstrap OR the unbinding of a
+	 * peer from another peer. If the service is not currently bound this method
+	 * does nothing.
+	 */
 	private void doUnbindService() {
 		if (serviceIsBound) {
 			if (mService != null) {
@@ -254,6 +318,10 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	/**
+	 * Prompts the selected peer to come join your game! The peer then has the
+	 * option to decline, of course.
+	 */
 	private void promptStartGame(final PeerDescriptor pd) {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		alert.setTitle(R.string.app_name);
@@ -281,6 +349,9 @@ public class MainActivity extends Activity {
 		alert.show();
 	}
 
+	/**
+	 * This initiates a game after the peer agrees to start a game.
+	 */
 	private void startGame(PeerDescriptor pd) {
 		Intent i = new Intent(this, GameActivity.class);
 		i.putExtra(GameActivity.EXTRA_START_PLAYER, State.PLAYER1.getValue());
@@ -288,6 +359,11 @@ public class MainActivity extends Activity {
 		startActivity(i);
 	}
 
+	/**
+	 * This verifies that the key provided by the other user is the same as the
+	 * key offered by the inital user. Thne, if it is the same allows the game
+	 * to be joined on both sides.
+	 */
 	private void verifyKeyAndJoinGame(final byte[] bytes,
 			final String otherAddress) {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);

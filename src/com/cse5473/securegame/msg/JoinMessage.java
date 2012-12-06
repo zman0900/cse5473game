@@ -41,16 +41,17 @@ import it.unipr.ce.dsg.s2p.peer.PeerDescriptor;
 
 public class JoinMessage extends BasicMessage {
 	/**
-	 * 
+	 * The number of peers in the peer list.
 	 */
 	private int numPeerList;
 
 	/**
-	 * 
+	 * The string representing the join message.
 	 */
 	public static final String MSG_PEER_JOIN = "peer_join";
 
 	/**
+	 * Constructs
 	 * 
 	 * @param peerDesc
 	 */
@@ -58,28 +59,30 @@ public class JoinMessage extends BasicMessage {
 
 		super(MSG_PEER_JOIN, new Payload(peerDesc));
 
-		/**
+		/*
 		 * number of the neighbor peers in the list
 		 * 
 		 * If numPeerList=0 the BootstrapPeer sends full peer list If
 		 * numPeerList=-1 the BootstrapPeer not sends the peer list Per default
 		 * all peer are requested
-		 * 
 		 */
 		setNumPeerList(0);
 	}
 
 	/**
+	 * Returns the number of peers at the time of the join message.
 	 * 
-	 * @return
+	 * @return The number of peers.
 	 */
 	public int getNumPeerList() {
 		return numPeerList;
 	}
 
 	/**
+	 * Sets the number of peers for the message.
 	 * 
 	 * @param numPeerList
+	 *            The number of peers.
 	 */
 	public void setNumPeerList(int numPeerList) {
 		this.numPeerList = numPeerList;

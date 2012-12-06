@@ -25,6 +25,12 @@ package com.cse5473.securegame.msg;
  * Developer(s)
  * Fabrizio Caramia (fabrizio.caramia@studenti.unipr.it)
  * 
+ * **** NOTE FROM GROUP:
+ * PLEASE NOTE, WE ONLY USED THIS BASIC BASIC BASIC OUTLINE.
+ * The SIP2Peer had one example of a basic message, and we ended up 
+ * using both of them, then creating our own messages. The Javadocs
+ * are actually done by us though, there weren't any, aside from the 
+ * initial descriptors.
  */
 
 import it.unipr.ce.dsg.s2p.message.BasicMessage;

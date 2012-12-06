@@ -27,23 +27,92 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+/**
+ * This is the peer manager it helps manage all of the peer services generated
+ * to and from the bootstrap peer. It allows for connections to and from the
+ * bootstrap peer using the SIP2Peer services.
+ */
 public class PeerManager extends Peer {
-
+	/**
+	 * This is the logging tag for the PeerManager. It helped identify the
+	 * location of multiple errors.
+	 */
 	private static final String LOG_TAG = "peerManager";
+
+	/**
+	 * @param SBC
+	 *            The IP of the SBC service running.
+	 */
 	public static final String SBC = "66.172.27.236:6066";
+
+	/**
+	 * @param BOOTSTRAP
+	 *            This holds to local IP of the Bootstrap peer.
+	 */
 	public static final String BOOTSTRAP = "bootstrap@66.172.27.236:5080";
+
+	/**
+	 * @param KEY_PREF_CONTACT_ADDRESS
+	 *            Holds the string representation of the contact address
+	 */
 	public static final String KEY_PREF_CONTACT_ADDRESS = "contactAddress";
 
+	/**
+	 * @param RECIEVED_PEER_LIST
+	 */
 	public static final int RECEIVED_PEER_LIST = 1;
+
+	/**
+	 * @param INIT_FAILED
+	 */
 	public static final int INIT_FAILED = 2;
+
+	/**
+	 * @param RECEIVED_PING
+	 */
 	public static final int RECEIVED_PING = 4;
+
+	/**
+	 * @param RECEIVED_ACK
+	 */
 	public static final int RECEIVED_ACK = 8;
+
+	/**
+	 * @param RECEIVED_VERIFY
+	 */
 	public static final int RECEIVED_VERIFY = 16;
+
+	/**
+	 * @param RECEIVED_MOVE
+	 */
 	public static final int RECEIVED_MOVE = 32;
 
+	/**
+	 * This is the handler for the peer manager. It's the object that handles
+	 * the handling of multiple peer services.
+	 */
 	private Handler handler;
+
+	/**
+	 * The context of the peer manager. Used to glean information about the
+	 * where the peer manager is being run (in what context/activity).
+	 */
 	private Context context;
 
+	/**
+	 * A default constructor for a PeerManager peer.
+	 * 
+	 * @param key
+	 *            The key to be used for authentication and connection
+	 * @param peerName
+	 *            the name to be used as an identifier for the peermanager.
+	 * @param peerPort
+	 *            The port it is to be run on.
+	 * @param handler
+	 *            The handler that will be tied to the peer.
+	 * @param context
+	 *            The context in which it is being run.
+	 */
 	public PeerManager(String key, String peerName, int peerPort,
 			Handler handler, Context context) {
 		super(null, key, peerName, peerPort);
@@ -52,6 +121,21 @@ public class PeerManager extends Peer {
 		init();
 	}
 
+	/**
+	 * A constructor for a PeerManager peer. Uses BasicParser in the extended
+	 * peer.
+	 * 
+	 * @param key
+	 *            The key to be used for authentication and connection
+	 * @param peerName
+	 *            the name to be used as an identifier for the peermanager.
+	 * @param peerPort
+	 *            The port it is to be run on.
+	 * @param handler
+	 *            The handler that will be tied to the peer.
+	 * @param context
+	 *            The context in which it is being run.
+	 */
 	public PeerManager(String key, String peerName, int peerPort,
 			BasicParser parser, Handler handler, Context context) {
 		super(null, key, peerName, peerPort, parser);
@@ -60,6 +144,11 @@ public class PeerManager extends Peer {
 		init();
 	}
 
+	/**
+	 * Initiates the private data for peer manager. Sets the basics like how
+	 * long to keep the peer manager alive. Also logs possible initiation errors
+	 * to LogCat.
+	 */
 	private void init() {
 		nodeConfig.test_address_reachability = "yes";
 		nodeConfig.keepalive_time = 600;
@@ -87,6 +176,9 @@ public class PeerManager extends Peer {
 		Log.d(LOG_TAG, "received sbc msg: " + SBCMsg);
 	}
 
+	/**
+	 * Handles the case of recieving an SBC address from a peer.
+	 */
 	@Override
 	protected void onReceivedSBCContactAddress(Address cAddress) {
 		super.onReceivedSBCContactAddress(cAddress);
@@ -99,6 +191,9 @@ public class PeerManager extends Peer {
 		// Got address, wait for HELLO to send
 	}
 
+	/**
+	 * Handles the case of a failed message delivery.
+	 */
 	@Override
 	protected void onDeliveryMsgFailure(String arg0, Address arg1, String arg2) {
 		// TODO Auto-generated method stub
@@ -117,6 +212,9 @@ public class PeerManager extends Peer {
 		}
 	}
 
+	/**
+	 * Handles the case of a successful message delivery.
+	 */
 	@Override
 	protected void onDeliveryMsgSuccess(String arg0, Address arg1, String arg2) {
 		// TODO Auto-generated method stub
@@ -129,6 +227,9 @@ public class PeerManager extends Peer {
 		}
 	}
 
+	/**
+	 * Handles the case of a received message from a peer.
+	 */
 	@Override
 	protected void onReceivedMsg(String peerMsg, Address sender,
 			String contentType) {
@@ -136,6 +237,14 @@ public class PeerManager extends Peer {
 		Log.d(LOG_TAG, "received message: " + peerMsg);
 	}
 
+	/**
+	 * This is the powerhouse of our main message interpreting system. It
+	 * interprets every type of message as a JSON message. This is extremely
+	 * useful for parsing messages and was set forth by the underlying structure
+	 * of the SIP2peer interfaces. The messages in the peers use JSON message as
+	 * an underlying format to standardize most messages between peers. This
+	 * just parses the separate message formats accordingly.
+	 */
 	@Override
 	protected void onReceivedJSONMsg(JSONObject jsonMsg, Address sender) {
 		try {
@@ -202,8 +311,7 @@ public class PeerManager extends Peer {
 			} else if (jsonMsg.get("type").equals(MoveMessage.MSG_PEER_MOVE)) {
 				Log.i(LOG_TAG, "received move message from " + sender.getURL());
 				// state isn't important
-				JSONArray arr = (JSONArray) params
-						.get(MoveMessage.PARAM_INDEX);
+				JSONArray arr = (JSONArray) params.get(MoveMessage.PARAM_INDEX);
 				byte[] bytes = new byte[arr.length()];
 				for (int i = 0; i < arr.length(); i++) {
 					bytes[i] = (byte) arr.getInt(i);
@@ -220,6 +328,10 @@ public class PeerManager extends Peer {
 		}
 	}
 
+	/**
+	 * This allows for the software to get the list of peers from the bootstrap
+	 * server. Used for the main activity.
+	 */
 	public ArrayList<String> getPeerList() {
 		ArrayList<String> addressList = new ArrayList<String>();
 		Iterator<NeighborPeerDescriptor> iter = this.peerList.values()
@@ -232,26 +344,63 @@ public class PeerManager extends Peer {
 		return addressList;
 	}
 
+	/**
+	 * Sends a message to the bootstrap from the given peer to initiate a
+	 * connection.
+	 */
 	public void doBootstrap() {
 		JoinMessage msg = new JoinMessage(peerDescriptor);
 		send(new Address(BOOTSTRAP), msg);
 	}
 
+	/**
+	 * Sends the ping message to the given address.
+	 * 
+	 * @param address
+	 *            The address to send the ping message to.
+	 */
 	public void pingPeer(String address) {
 		PingMessage ping = new PingMessage(peerDescriptor);
 		send(new Address(address), ping);
 	}
 
+	/**
+	 * Sends the acknowledgement message to the given address.
+	 * 
+	 * @param address
+	 *            The address to send to acknowledgement message to.
+	 */
 	public void ackPeer(String address) {
 		AckMessage ack = new AckMessage(peerDescriptor);
 		send(new Address(address), ack);
 	}
 
+	/**
+	 * Sends a verification message to the given address with the given key.
+	 * 
+	 * @param address
+	 *            The address to send the verification to.
+	 * @param key
+	 *            The key to encrypt the random data with.
+	 */
 	public void sendVerification(String address, String key) {
 		VerificationMessage msg = new VerificationMessage(key);
 		send(new Address(address), msg);
 	}
 
+	/**
+	 * Send a move message to the given address with the given state, index and
+	 * key to encrypt the message with
+	 * 
+	 * @param address
+	 *            The address to send the verification to.
+	 * @param state
+	 *            The state to change the square to.
+	 * @param index
+	 *            The index to change.
+	 * @param key
+	 *            The key to encrypt this move message with.
+	 */
 	public void sendMovePeer(String address, GameView.State state, int index,
 			String key) {
 		MoveMessage m = new MoveMessage(state, index, key);
